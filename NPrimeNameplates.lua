@@ -735,7 +735,8 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
 			self:SetProgressBar(p_nameplate.shield, l_shield, l_shieldMax)
 		end
 
-		if (_matrix["ConfigHealthText"]) then
+		if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
+		-- if (_matrix["ConfigHealthText"]) then
 			local l_shieldText = ""
 			local l_healthText = self:GetNumber(l_health, l_healthMax)
 
@@ -1531,7 +1532,19 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
 		p_nameplate.matrixFlags = self:GetMatrixFlags(p_nameplate)
 		self:UpdateTextNameGuild(p_nameplate)
 		self:UpdateTopContainer(p_nameplate)
+		
+		if (p_nameplate.inCombat) then
+			p_nameplate.containerMain:SetText("")
+			local l_h = _matrix["SliderBarScale"] / 10
+			local l_shieldHeight = p_nameplate.hasShield and l_h * 1.3 or l_h
+			p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shieldHeight)
+		else
+			p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, 26)
+	
+		end
 	end
+	
+	-- p_nameplate.rearrange = true
 end
 
 function NPrimeNameplates:HasActivationState(p_unit)
