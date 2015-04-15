@@ -1529,6 +1529,7 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
 	if (p_nameplate.inCombat ~= p_inCombat) then
 		p_nameplate.inCombat = p_inCombat
 		p_nameplate.matrixFlags = self:GetMatrixFlags(p_nameplate)
+		self:UpdateTextNameGuild(p_nameplate)
 		self:UpdateTopContainer(p_nameplate)
 	end
 end
