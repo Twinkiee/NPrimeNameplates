@@ -1547,8 +1547,7 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
     end
   end
 
-
-  -- p_nameplate.rearrange = true
+  p_nameplate.rearrange = true
 end
 
 function NPrimeNameplates:HasActivationState(p_unit)
