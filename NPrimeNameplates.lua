@@ -1450,13 +1450,16 @@ end
 function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
 	if (_blinded) 									then return false end
 
+  if (not p_nameplate.onScreen) 					then return false end
+
+  -- if the nameplate has a target set (which probably means it's a player's nameplate)
 	if (p_nameplate.targetNP) then
+    -- return true if the nameplate's unit is targeted by the player, false otherwise
 		return _player:GetTarget() == p_nameplate.unit
 	end
 
+  -- return false if the nameplate is targeted by the player. Sounds wrong
 	if (_player:GetTarget() == p_nameplate.unit) 	then return false end
-
-	if (not p_nameplate.onScreen) 					then return false end
 
 	if (_matrix["ConfigOcclusionCulling"] and 
 		p_nameplate.occluded) 						then return false end
