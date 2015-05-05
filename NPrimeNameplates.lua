@@ -100,6 +100,7 @@ local _matrixCategories =
   {
     "Nameplates",
     "Health",
+	"HealthText",
     "Class",
     "Level",
     "Title",
