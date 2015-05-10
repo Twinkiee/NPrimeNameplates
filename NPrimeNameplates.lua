@@ -184,14 +184,16 @@ local F_GROUP		= 8
 
 local F_NAMEPLATE 	= 0
 local F_HEALTH 		= 1
-local F_CLASS 		= 2
-local F_LEVEL 		= 3
-local F_TITLE 		= 4
-local F_GUILD 		= 5
-local F_CASTING_BAR = 6
-local F_CC_BAR		= 7
-local F_ARMOR 		= 8
-local F_BUBBLE 		= 9
+local F_HEALTH_TEXT	= 2
+local F_CLASS 		= 3
+local F_LEVEL 		= 4
+local F_TITLE 		= 5
+local F_GUILD 		= 6
+local F_CASTING_BAR = 7
+local F_CC_BAR		= 8
+local F_ARMOR 		= 9
+local F_BUBBLE 		= 10
+
 
 local _player 		= nil
 local _playerPath	= nil
@@ -741,7 +743,12 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
       self:SetProgressBar(p_nameplate.shield, l_shield, l_shieldMax)
     end
 
-    if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
+	local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
+
+	Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
+	
+	if(l_healthTextEnabled) then
+    --if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
       -- if (_matrix["ConfigHealthText"]) then
       local l_shieldText = ""
       local l_healthText = self:GetNumber(l_health, l_healthMax)
@@ -1544,10 +1551,14 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
     self:UpdateTextNameGuild(p_nameplate)
     self:UpdateTopContainer(p_nameplate)
 
-    if (p_nameplate.inCombat) then
-      NPrimeNameplates:UpdateMainContainerHeightWithoutHealthText(p_nameplate)
+	local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
+
+	Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
+	
+	if(l_healthTextEnabled) then
+      self:UpdateMainContainerHeightWithHealthText(p_nameplate)
     else
-      NPrimeNameplates:UpdateMainContainerHeightWithHealthText(p_nameplate)
+	  self:UpdateMainContainerHeightWithoutHealthText(p_nameplate)
     end
   end
 
