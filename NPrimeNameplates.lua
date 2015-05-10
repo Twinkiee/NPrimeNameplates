@@ -745,7 +745,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
 
 	local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
 
-	Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
+	-- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
 	
 	if(l_healthTextEnabled) then
     --if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
