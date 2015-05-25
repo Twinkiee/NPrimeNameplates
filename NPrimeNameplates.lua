@@ -100,7 +100,7 @@ local _matrixCategories =
   {
     "Nameplates",
     "Health",
-	"HealthText",
+    "HealthText",
     "Class",
     "Level",
     "Title",
@@ -202,18 +202,18 @@ local _blinded		= nil
 
 local _targetNP		= nil
 
-local _floor		= math.floor
-local _min			= math.min
-local _max			= math.max
-local _ipairs		= ipairs
-local _pairs		= pairs
+local _floor        = math.floor
+local _min          = math.min
+local _max          = math.max
+local _ipairs       = ipairs
+local _pairs		    = pairs
 local _tableInsert	= table.insert
 local _tableRemove	= table.remove
-local _next			= next
-local _type			= type
-local _weaselStr	= String_GetWeaselString
-local _strLen		= string.len
-local _textWidth	= Apollo.GetTextWidth
+local _next			    = next
+local _type			    = type
+local _weaselStr    = String_GetWeaselString
+local _strLen       = string.len
+local _textWidth    = Apollo.GetTextWidth
 
 local _or 			= bit32.bor
 local _lshift		= bit32.lshift
@@ -268,38 +268,38 @@ function NPrimeNameplates:OnLoad()
   self.buffer = {}
   self.challenges = ChallengesLib.GetActiveChallengeList()
 
-  Apollo.RegisterSlashCommand("npnpdebug", 					"OnNPrimeNameplatesCommandDebug", self)
-  Apollo.RegisterEventHandler("VarChange_FrameCount", 		"OnDebuggerUnit", self)
+  Apollo.RegisterSlashCommand("npnpdebug", 					        "OnNPrimeNameplatesCommandDebug", self)
+  Apollo.RegisterEventHandler("VarChange_FrameCount",       "OnDebuggerUnit", self)
 
-  Apollo.RegisterSlashCommand("npnp", 						"OnConfigure", self)
+  Apollo.RegisterSlashCommand("npnp", 						          "OnConfigure", self)
 
-  Apollo.RegisterEventHandler("VarChange_FrameCount", 		"OnFrame", self)
-  Apollo.RegisterEventHandler("ChangeWorld", 					"OnChangeWorld", self)
+  Apollo.RegisterEventHandler("VarChange_FrameCount",       "OnFrame", self)
+  Apollo.RegisterEventHandler("ChangeWorld", 					      "OnChangeWorld", self)
 
-  Apollo.RegisterEventHandler("UnitCreated", 					"OnUnitCreated", self)
-  Apollo.RegisterEventHandler("UnitDestroyed", 				"OnUnitDestroyed", self)
-  Apollo.RegisterEventHandler("UnitTextBubbleCreate", 		"OnTextBubble", self)
+  Apollo.RegisterEventHandler("UnitCreated", 					      "OnUnitCreated", self)
+  Apollo.RegisterEventHandler("UnitDestroyed",              "OnUnitDestroyed", self)
+  Apollo.RegisterEventHandler("UnitTextBubbleCreate",       "OnTextBubble", self)
   Apollo.RegisterEventHandler("UnitTextBubblesDestroyed", 	"OnTextBubble", self)
-  Apollo.RegisterEventHandler("TargetUnitChanged", 			"OnTargetUnitChanged", self)
-  Apollo.RegisterEventHandler("UnitActivationTypeChanged", 	"OnUnitActivationTypeChanged", self)
+  Apollo.RegisterEventHandler("TargetUnitChanged", 			    "OnTargetUnitChanged", self)
+  Apollo.RegisterEventHandler("UnitActivationTypeChanged",  "OnUnitActivationTypeChanged", self)
 
-  Apollo.RegisterEventHandler("UnitLevelChanged", 			"OnUnitLevelChanged", self)
+  Apollo.RegisterEventHandler("UnitLevelChanged",           "OnUnitLevelChanged", self)
 
-  Apollo.RegisterEventHandler("PlayerTitleChange", 			"OnPlayerMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitNameChanged", 				"OnUnitMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitTitleChanged", 			"OnUnitMainTextChanged", self)
-  Apollo.RegisterEventHandler("GuildChange", 					"OnPlayerMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitGuildNameplateChanged", 	"OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("PlayerTitleChange",          "OnPlayerMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitNameChanged",            "OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitTitleChanged", 			    "OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("GuildChange", 					      "OnPlayerMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitGuildNameplateChanged",  "OnUnitMainTextChanged", self)
   Apollo.RegisterEventHandler("UnitMemberOfGuildChange", 		"OnUnitMainTextChanged", self)
 
-  Apollo.RegisterEventHandler("ApplyCCState", 				"OnCCStateApplied", self)
-  Apollo.RegisterEventHandler("UnitGroupChanged", 			"OnGroupUpdated", self)
-  Apollo.RegisterEventHandler("ChallengeUnlocked", 			"OnChallengeUnlocked", self)
-  Apollo.RegisterEventHandler("UnitEnteredCombat", 			"OnUnitCombatStateChanged", self)
-  Apollo.RegisterEventHandler("UnitPvpFlagsChanged", 			"OnUnitPvpFlagsChanged", self)
+  Apollo.RegisterEventHandler("ApplyCCState", 				      "OnCCStateApplied", self)
+  Apollo.RegisterEventHandler("UnitGroupChanged", 			    "OnGroupUpdated", self)
+  Apollo.RegisterEventHandler("ChallengeUnlocked", 			    "OnChallengeUnlocked", self)
+  Apollo.RegisterEventHandler("UnitEnteredCombat", 			    "OnUnitCombatStateChanged", self)
+  Apollo.RegisterEventHandler("UnitPvpFlagsChanged",        "OnUnitPvpFlagsChanged", self)
 
-  Apollo.RegisterEventHandler("FriendshipAdd", 				"OnFriendshipChanged", self)
-  Apollo.RegisterEventHandler("FriendshipRemove", 			"OnFriendshipChanged", self)
+  Apollo.RegisterEventHandler("FriendshipAdd",              "OnFriendshipChanged", self)
+  Apollo.RegisterEventHandler("FriendshipRemove",           "OnFriendshipChanged", self)
 
   self.xmlDoc = XmlDoc.CreateFromFile("NPrimeNameplates.xml")
   Apollo.LoadSprites("NPrimeNameplates_Sprites.xml")
@@ -660,8 +660,10 @@ function NPrimeNameplates:UpdateNameplate(p_nameplate, p_cyclicUpdate)
 
   self:UpdateArmor(p_nameplate)
 
-  if (p_nameplate.hasHealth) then
+  if (p_nameplate.hasHealth
+    or (p_nameplate.isPlayer and self:HasHealth(p_nameplate.unit))) then
     self:UpdateMainContainer(p_nameplate)
+    p_nameplate.hasHealth = true
   end
 
   if (p_cyclicUpdate) then
@@ -697,18 +699,18 @@ function NPrimeNameplates:UpdateAnchoring(p_nameplate)
 end
 
 function NPrimeNameplates:UpdateMainContainer(p_nameplate)
-  local l_health 		= p_nameplate.unit:GetHealth();
-  local l_healthMax 	= p_nameplate.unit:GetMaxHealth();
-  local l_shield 		= p_nameplate.unit:GetShieldCapacity();
-  local l_shieldMax 	= p_nameplate.unit:GetShieldCapacityMax();
-  local l_absorb 		= p_nameplate.unit:GetAbsorptionValue();
-  local l_fullHealth 	= l_health == l_healthMax;
-  local l_shieldFull 	= false;
+  local l_health            = p_nameplate.unit:GetHealth();
+  local l_healthMax         = p_nameplate.unit:GetMaxHealth();
+  local l_shield            = p_nameplate.unit:GetShieldCapacity();
+  local l_shieldMax         = p_nameplate.unit:GetShieldCapacityMax();
+  local l_absorb            = p_nameplate.unit:GetAbsorptionValue();
+  local l_fullHealth        = l_health == l_healthMax;
+  local l_shieldFull        = false;
   local l_hiddenBecauseFull = false;
   local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
 
-  if (p_nameplate.hasShield)
-  then l_shieldFull = l_shield == l_shieldMax;
+  if (p_nameplate.hasShield) then
+    l_shieldFull = l_shield == l_shieldMax;
   end
 
   if (not p_nameplate.targetNP) then
@@ -743,12 +745,12 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
       self:SetProgressBar(p_nameplate.shield, l_shield, l_shieldMax)
     end
 
-	local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
+    local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
 
-	-- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
-	
-	if(l_healthTextEnabled) then
-    --if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
+    -- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
+
+    if(l_healthTextEnabled) then
+      --if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
       -- if (_matrix["ConfigHealthText"]) then
       local l_shieldText = ""
       local l_healthText = self:GetNumber(l_health, l_healthMax)
@@ -1236,7 +1238,7 @@ end
 function NPrimeNameplates:UpdateTextLevel(p_nameplate)
   local l_level = p_nameplate.unit:GetLevel()
   if (l_level ~= nil) then
-    l_level = "Lv" .. l_level .. "   "
+    l_level = --[[ "Lv" .. --]] l_level .. "   "
     local l_fontSize = _matrix["SliderFontSize"]
     local l_font = _matrix["ConfigAlternativeFont"] and _fontSecondary or _fontPrimary
     local l_width = _textWidth(l_font[l_fontSize].font, l_level)
@@ -1454,10 +1456,22 @@ function NPrimeNameplates:AddIcon(p_nameplate, p_sprite, p_iconN, p_width)
 end
 
 function NPrimeNameplates:HasHealth(p_unit)
-  if (p_unit:GetMouseOverType() == "Simple") 	then return false end
-  if (p_unit:IsDead()) 						then return false end
-  if (p_unit:GetMaxHealth() == nil) 			then return false end
-  if (p_unit:GetMaxHealth() == 0) 			then return false end
+
+  if (p_unit == nil)
+  then return false end
+  
+  if (p_unit:GetMouseOverType() == "Simple" or p_unit:GetMouseOverType() == "SimpleCollidable")
+  then return false end
+  
+  if (p_unit:IsDead())
+  then return false end
+  
+  if (p_unit:GetMaxHealth() == nil)
+  then return false end
+  
+  if (p_unit:GetMaxHealth() == 0)
+  then return false end
+
   return true
 end
 
@@ -1543,7 +1557,7 @@ end
 
 function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
   if (p_nameplate == nil) then return end
-  
+
   -- If combat state changed
   if (p_nameplate.inCombat ~= p_inCombat) then
     p_nameplate.inCombat = p_inCombat
@@ -1551,14 +1565,14 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
     self:UpdateTextNameGuild(p_nameplate)
     self:UpdateTopContainer(p_nameplate)
 
-	local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
+    local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
 
-	Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
-	
-	if(l_healthTextEnabled) then
+    Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
+
+    if(l_healthTextEnabled) then
       self:UpdateMainContainerHeightWithHealthText(p_nameplate)
     else
-	  self:UpdateMainContainerHeightWithoutHealthText(p_nameplate)
+      self:UpdateMainContainerHeightWithoutHealthText(p_nameplate)
     end
   end
 
