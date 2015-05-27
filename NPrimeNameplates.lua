@@ -923,6 +923,8 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
   if (p_target ~= nil and self.nameplates[p_target:GetId()]) then
     self.nameplates[p_target:GetId()].form:Show(false, true)
   end
+  
+  -- Print(p_target:GetType())
 
   if (p_target ~= nil) then
     local l_type = self:GetUnitType(p_target)
@@ -1519,10 +1521,11 @@ function NPrimeNameplates:GetUnitType(p_unit)
   if (p_unit:IsInYourGroup()) 			then return "Group" end
 
   local l_type = p_unit:GetType()
-  if (l_type == "BindPoint")  then return "Other" end
-  if (l_type == "PinataLoot") then return "Other" end
-  if (l_type == "Ghost")      then return "Hidden" end
-  if (l_type == "Mount")      then return "Hidden" end
+  if (l_type == "BindPoint")    then return "Other" end
+  if (l_type == "PinataLoot")   then return "Other" end
+  if (l_type == "Ghost")        then return "Hidden" end
+  if (l_type == "Mount")        then return "Hidden" end
+  -- if (l_type == "Collectible")  then return "Hidden" end
   
   -- Some interactable objects are identified as NonPlayer
   -- This hack is done to prevent display the nameplate for this kind of units
