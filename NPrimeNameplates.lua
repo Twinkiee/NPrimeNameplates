@@ -923,6 +923,8 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
   if (p_target ~= nil and self.nameplates[p_target:GetId()]) then
     self.nameplates[p_target:GetId()].form:Show(false, true)
   end
+  
+  -- Print(p_target:GetType())
 
   if (p_target ~= nil) then
     local l_type = self:GetUnitType(p_target)
@@ -1519,10 +1521,20 @@ function NPrimeNameplates:GetUnitType(p_unit)
   if (p_unit:IsInYourGroup()) 			then return "Group" end
 
   local l_type = p_unit:GetType()
-  if (l_type == "BindPoint") 				then return "Other" end
-  if (l_type == "PinataLoot") 			then return "Other" end
-  if (l_type == "Ghost") 					then return "Hidden" end
-  if (l_type == "Mount")	 				then return "Hidden" end
+  if (l_type == "BindPoint")    then return "Other" end
+  if (l_type == "PinataLoot")   then return "Other" end
+  if (l_type == "Ghost")        then return "Hidden" end
+  if (l_type == "Mount")        then return "Hidden" end
+  -- if (l_type == "Collectible")  then return "Hidden" end
+  
+  -- Some interactable objects are identified as NonPlayer
+  -- This hack is done to prevent display the nameplate for this kind of units
+  if (l_type == "NonPlayer")  then 
+    local l_level = p_unit:GetLevel()
+    if (not l_level) then
+      return "Hidden"
+    end   
+  end
 
   local l_disposition = p_unit:GetDispositionTo(_player)
 
@@ -1567,7 +1579,7 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
 
     local l_healthTextEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH_TEXT)
 
-    Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
+    -- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
 
     if(l_healthTextEnabled) then
       self:UpdateMainContainerHeightWithHealthText(p_nameplate)
@@ -1646,3 +1658,42 @@ end
 
 local NPrimeNameplatesInst = NPrimeNameplates:new()
 NPrimeNameplatesInst:Init()
+
+
+-------------------------------------------------------------------------------
+
+function table.val_to_str ( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table.tostring( v ) or
+      tostring( v )
+  end
+end
+
+function table.key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. table.val_to_str( k ) .. "]"
+  end
+end
+
+function table.tostring( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, table.val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
+end
