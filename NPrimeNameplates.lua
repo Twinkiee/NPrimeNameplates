@@ -21,6 +21,7 @@ require "GroupLib"
 require "PlayerPathLib"
 require "bit32"
 
+
 local NPrimeNameplates = {}
 
 local _ccWhiteList =
@@ -695,7 +696,7 @@ function NPrimeNameplates:UpdateAnchoring(p_nameplate)
     end
   end
 
-  p_nameplate.form:SetUnit(l_anchorUnit, l_reposition and 0 or 1)
+  p_nameplate.form:SetUnit(l_anchorUnit, l_reposition and 0 or 1 --[[ CombatFloater.CodeEnumFloaterLocation.Chest --]] )
 end
 
 function NPrimeNameplates:UpdateMainContainer(p_nameplate)
@@ -1526,14 +1527,21 @@ function NPrimeNameplates:GetUnitType(p_unit)
   if (l_type == "Ghost")        then return "Hidden" end
   if (l_type == "Mount")        then return "Hidden" end
   -- if (l_type == "Collectible")  then return "Hidden" end
-  
+
+  --[[ 
+	if (p_unit:GetName() == "Derelict Silo Egg") then 
+		     local Rover = Apollo.GetAddon("Rover")
+    			Rover:AddWatch("WatchName", p_unit, Rover.ADD_ONCE )
+	end
+	--]]
+	
   -- Some interactable objects are identified as NonPlayer
   -- This hack is done to prevent display the nameplate for this kind of units
-  if (l_type == "NonPlayer")  then 
-    local l_level = p_unit:GetLevel()
-    if (not l_level) then
+  if (l_type == "NonPlayer" and not p_unit:GetUnitRaceId())  then 
+    -- local l_level = p_unit:GetLevel()
+    -- if (not l_level) then
       return "Hidden"
-    end   
+    -- end   
   end
 
   local l_disposition = p_unit:GetDispositionTo(_player)
