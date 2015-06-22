@@ -24,233 +24,232 @@ require "bit32"
 local NPrimeNameplates = {}
 
 local _ccWhiteList =
-  {
-    [Unit.CodeEnumCCState.Stun] 			= "Stun",
-    [Unit.CodeEnumCCState.Disarm] 			= "Disarm",
-    [Unit.CodeEnumCCState.Fear] 			= "Fear",
-    [Unit.CodeEnumCCState.Knockdown] 		= "knockdown",
-    [Unit.CodeEnumCCState.Blind] 			= "Blind",
-    [Unit.CodeEnumCCState.Tether] 			= "Tether",
-    [Unit.CodeEnumCCState.Subdue] 			= "Subdue",
-    [Unit.CodeEnumCCState.Vulnerability] 	= "MoO",
-  }
+{
+  [Unit.CodeEnumCCState.Stun] = "Stun",
+  [Unit.CodeEnumCCState.Disarm] = "Disarm",
+  [Unit.CodeEnumCCState.Fear] = "Fear",
+  [Unit.CodeEnumCCState.Knockdown] = "knockdown",
+  [Unit.CodeEnumCCState.Blind] = "Blind",
+  [Unit.CodeEnumCCState.Tether] = "Tether",
+  [Unit.CodeEnumCCState.Subdue] = "Subdue",
+  [Unit.CodeEnumCCState.Vulnerability] = "MoO",
+}
 
 local _exceptions =
-  {
-    ["NyanPrime"] 				= false, 	-- Hidden
-    ["Cactoid"] 				= true, 	-- Visible
-    ["Spirit of the Darned"] 	= true,
-    ["Wilderrun Trap"] 			= true,
-  }
+{
+  ["NyanPrime"] = false, -- Hidden
+  ["Cactoid"] = true, -- Visible
+  ["Spirit of the Darned"] = true,
+  ["Wilderrun Trap"] = true,
+}
 
 local _color = ApolloColor.new
 
 local _playerClass =
-  {
-    [GameLib.CodeEnumClass.Esper]  		 = "NPrimeNameplates_Sprites:IconEsper",
-    [GameLib.CodeEnumClass.Medic]  		 = "NPrimeNameplates_Sprites:IconMedic",
-    [GameLib.CodeEnumClass.Stalker]  	 = "NPrimeNameplates_Sprites:IconStalker",
-    [GameLib.CodeEnumClass.Warrior]  	 = "NPrimeNameplates_Sprites:IconWarrior",
-    [GameLib.CodeEnumClass.Engineer]  	 = "NPrimeNameplates_Sprites:IconEngineer",
-    [GameLib.CodeEnumClass.Spellslinger] = "NPrimeNameplates_Sprites:IconSpellslinger",
-  }
+{
+  [GameLib.CodeEnumClass.Esper] = "NPrimeNameplates_Sprites:IconEsper",
+  [GameLib.CodeEnumClass.Medic] = "NPrimeNameplates_Sprites:IconMedic",
+  [GameLib.CodeEnumClass.Stalker] = "NPrimeNameplates_Sprites:IconStalker",
+  [GameLib.CodeEnumClass.Warrior] = "NPrimeNameplates_Sprites:IconWarrior",
+  [GameLib.CodeEnumClass.Engineer] = "NPrimeNameplates_Sprites:IconEngineer",
+  [GameLib.CodeEnumClass.Spellslinger] = "NPrimeNameplates_Sprites:IconSpellslinger",
+}
 
 local _npcRank =
-  {
-    [Unit.CodeEnumRank.Elite] 		= "NPrimeNameplates_Sprites:icon_6_elite",
-    [Unit.CodeEnumRank.Superior] 	= "NPrimeNameplates_Sprites:icon_5_superior",
-    [Unit.CodeEnumRank.Champion] 	= "NPrimeNameplates_Sprites:icon_4_champion",
-    [Unit.CodeEnumRank.Standard] 	= "NPrimeNameplates_Sprites:icon_3_standard",
-    [Unit.CodeEnumRank.Minion] 		= "NPrimeNameplates_Sprites:icon_2_minion",
-    [Unit.CodeEnumRank.Fodder] 		= "NPrimeNameplates_Sprites:icon_1_fodder",
-  }
+{
+  [Unit.CodeEnumRank.Elite] = "NPrimeNameplates_Sprites:icon_6_elite",
+  [Unit.CodeEnumRank.Superior] = "NPrimeNameplates_Sprites:icon_5_superior",
+  [Unit.CodeEnumRank.Champion] = "NPrimeNameplates_Sprites:icon_4_champion",
+  [Unit.CodeEnumRank.Standard] = "NPrimeNameplates_Sprites:icon_3_standard",
+  [Unit.CodeEnumRank.Minion] = "NPrimeNameplates_Sprites:icon_2_minion",
+  [Unit.CodeEnumRank.Fodder] = "NPrimeNameplates_Sprites:icon_1_fodder",
+}
 
 
 local _dispColor =
-  {
-    [Unit.CodeEnumDisposition.Neutral]  = _color("FFFFBC55"),
-    [Unit.CodeEnumDisposition.Hostile]  = _color("FFFA394C"),
-    [Unit.CodeEnumDisposition.Friendly] = _color("FF7DAF29"),
-    [Unit.CodeEnumDisposition.Unknown] 	= _color("FFFFFFFF"),
-  }
+{
+  [Unit.CodeEnumDisposition.Neutral] = _color("FFFFBC55"),
+  [Unit.CodeEnumDisposition.Hostile] = _color("FFFA394C"),
+  [Unit.CodeEnumDisposition.Friendly] = _color("FF7DAF29"),
+  [Unit.CodeEnumDisposition.Unknown] = _color("FFFFFFFF"),
+}
 
 local _typeColor =
-  {
-    Self 		= _color("FF7DAF29"),
-    Friendly 	= _color("FF7DAF29"),
-    Neutral 	= _color("FFFFBC55"),
-    Hostile 	= _color("FFFA394C"),
-    Group 		= _color("FF7DAF29"), -- FF597CFF
-    Harvest 	= _color("FFFFFFFF"),
-    Other 		= _color("FFFFFFFF"),
-    Hidden 		= _color("FFFFFFFF"),
-    Special 	= _color("FF55FAFF"),
-    Cleanse 	= _color("FFAF40E1"),
-  }
+{
+  Self = _color("FF7DAF29"),
+  Friendly = _color("FF7DAF29"),
+  Neutral = _color("FFFFBC55"),
+  Hostile = _color("FFFA394C"),
+  Group = _color("FF7DAF29"), -- FF597CFF
+  Harvest = _color("FFFFFFFF"),
+  Other = _color("FFFFFFFF"),
+  Hidden = _color("FFFFFFFF"),
+  Special = _color("FF55FAFF"),
+  Cleanse = _color("FFAF40E1"),
+}
 
 local _paths =
-  {
-    [0] = "Soldier",
-    [1] = "Settler",
-    [2] = "Scientist",
-    [3] = "Explorer",
-  }
+{
+  [0] = "Soldier",
+  [1] = "Settler",
+  [2] = "Scientist",
+  [3] = "Explorer",
+}
 
 local _matrixCategories =
-  {
-    "Nameplates",
-    "Health",
-    "HealthText",
-    "Class",
-    "Level",
-    "Title",
-    "Guild",
-    "CastingBar",
-    "CCBar",
-    "Armor",
-    "TextBubbleFade",
-  }
+{
+  "Nameplates",
+  "Health",
+  "HealthText",
+  "Class",
+  "Level",
+  "Title",
+  "Guild",
+  "CastingBar",
+  "CCBar",
+  "Armor",
+  "TextBubbleFade",
+}
 
 local _matrixFilters =
-  {
-    "Self",
-    "Target",
-    "Friendly",
-    "Neutral",
-    "Hostile",
-    "Group",
-    "Other",
-  }
+{
+  "Self",
+  "Target",
+  "Friendly",
+  "Neutral",
+  "Hostile",
+  "Group",
+  "Other",
+}
 
 local _matrixButtonSprites =
-  {
-    [0] = "MatrixOff",
-    [1] = "MatrixInCombat",
-    [2] = "MatrixOutOfCombat",
-    [3] = "MatrixOn",
-  }
+{
+  [0] = "MatrixOff",
+  [1] = "MatrixInCombat",
+  [2] = "MatrixOutOfCombat",
+  [3] = "MatrixOn",
+}
 
 local _asbl =
-  {
-    ["Chair"] = true,
-    ["CityDirections"] = true,
-    ["TradeskillNode"] = true,
-  }
+{
+  ["Chair"] = true,
+  ["CityDirections"] = true,
+  ["TradeskillNode"] = true,
+}
 
 local _flags =
-  {
-    opacity = 1,
-    contacts = 1,
-  }
+{
+  opacity = 1,
+  contacts = 1,
+}
 
 local _fontPrimary =
-  {
-    [1] = { font = "CRB_Header9_O",  height = 20 },
-    [2] = { font = "CRB_Header10_O", height = 21 },
-    [3] = { font = "CRB_Header11_O", height = 22 },
-    [4] = { font = "CRB_Header12_O", height = 24 },
-    [5] = { font = "CRB_Header14_O", height = 28 },
-    [6] = { font = "CRB_Header16_O", height = 34 },
-  }
+{
+  [1] = { font = "CRB_Header9_O", height = 20 },
+  [2] = { font = "CRB_Header10_O", height = 21 },
+  [3] = { font = "CRB_Header11_O", height = 22 },
+  [4] = { font = "CRB_Header12_O", height = 24 },
+  [5] = { font = "CRB_Header14_O", height = 28 },
+  [6] = { font = "CRB_Header16_O", height = 34 },
+}
 
 local _fontSecondary =
-  {
-    [1] = { font = "CRB_Interface9_O",  height = 20 },
-    [2] = { font = "CRB_Interface10_O", height = 21 },
-    [3] = { font = "CRB_Interface11_O", height = 22 },
-    [4] = { font = "CRB_Interface12_O", height = 24 },
-    [5] = { font = "CRB_Interface14_O", height = 28 },
-    [6] = { font = "CRB_Interface16_O", height = 34 },
-  }
+{
+  [1] = { font = "CRB_Interface9_O", height = 20 },
+  [2] = { font = "CRB_Interface10_O", height = 21 },
+  [3] = { font = "CRB_Interface11_O", height = 22 },
+  [4] = { font = "CRB_Interface12_O", height = 24 },
+  [5] = { font = "CRB_Interface14_O", height = 28 },
+  [6] = { font = "CRB_Interface16_O", height = 34 },
+}
 
 local _dispStr =
-  {
-    [Unit.CodeEnumDisposition.Hostile]  	= "Hostile",
-    [Unit.CodeEnumDisposition.Neutral]  	= "Neutral",
-    [Unit.CodeEnumDisposition.Friendly] 	= "Friendly",
-    [Unit.CodeEnumDisposition.Unknown] 		= "Hidden",
-  }
+{
+  [Unit.CodeEnumDisposition.Hostile] = "Hostile",
+  [Unit.CodeEnumDisposition.Neutral] = "Neutral",
+  [Unit.CodeEnumDisposition.Friendly] = "Friendly",
+  [Unit.CodeEnumDisposition.Unknown] = "Hidden",
+}
 
-local F_PATH 		= 0
-local F_QUEST 		= 1
-local F_CHALLENGE 	= 2
-local F_FRIEND	 	= 3
-local F_RIVAL	 	= 4
-local F_PVP 		= 4
-local F_AGGRO 		= 5
-local F_CLEANSE 	= 6
-local F_LOW_HP 		= 7
-local F_GROUP		= 8
+local F_PATH = 0
+local F_QUEST = 1
+local F_CHALLENGE = 2
+local F_FRIEND = 3
+local F_RIVAL = 4
+local F_PVP = 4
+local F_AGGRO = 5
+local F_CLEANSE = 6
+local F_LOW_HP = 7
+local F_GROUP = 8
 
-local F_NAMEPLATE 	= 0
-local F_HEALTH 		= 1
-local F_HEALTH_TEXT	= 2
-local F_CLASS 		= 3
-local F_LEVEL 		= 4
-local F_TITLE 		= 5
-local F_GUILD 		= 6
+local F_NAMEPLATE = 0
+local F_HEALTH = 1
+local F_HEALTH_TEXT = 2
+local F_CLASS = 3
+local F_LEVEL = 4
+local F_TITLE = 5
+local F_GUILD = 6
 local F_CASTING_BAR = 7
-local F_CC_BAR		= 8
-local F_ARMOR 		= 9
-local F_BUBBLE 		= 10
+local F_CC_BAR = 8
+local F_ARMOR = 9
+local F_BUBBLE = 10
 
 
-local _player 		= nil
-local _playerPath	= nil
-local _playerPos	= nil
-local _blinded		= nil
+local _player = nil
+local _playerPath = nil
+local _playerPos = nil
+local _blinded = nil
 
-local _targetNP		= nil
+local _targetNP = nil
 
-local _floor        = math.floor
-local _min          = math.min
-local _max          = math.max
-local _ipairs       = ipairs
-local _pairs		    = pairs
-local _tableInsert	= table.insert
-local _tableRemove	= table.remove
-local _next			    = next
-local _type			    = type
-local _weaselStr    = String_GetWeaselString
-local _strLen       = string.len
-local _textWidth    = Apollo.GetTextWidth
+local _floor = math.floor
+local _min = math.min
+local _max = math.max
+local _ipairs = ipairs
+local _pairs = pairs
+local _tableInsert = table.insert
+local _tableRemove = table.remove
+local _next = next
+local _type = type
+local _weaselStr = String_GetWeaselString
+local _strLen = string.len
+local _textWidth = Apollo.GetTextWidth
 
-local _or 			= bit32.bor
-local _lshift		= bit32.lshift
-local _and			= bit32.band
-local _not			= bit32.bnot
-local _xor			= bit32.bxor
+local _or = bit32.bor
+local _lshift = bit32.lshift
+local _and = bit32.band
+local _not = bit32.bnot
+local _xor = bit32.bxor
 
-local _configUI		= nil
+local _configUI = nil
 
-local _matrix 		= {}
-local _count		= 0
-local _cycleSize	= 25
+local _matrix = {}
+local _count = 0
+local _cycleSize = 25
 
 local _iconPixie =
+{
+  strSprite = "",
+  cr = white,
+  loc =
   {
-    strSprite = "",
-    cr = white,
-    loc =
-    {
-      fPoints = { 0, 0, 1, 1 },
-      nOffsets = { 0, 0, 0, 0 }
-    },
-  }
+    fPoints = { 0, 0, 1, 1 },
+    nOffsets = { 0, 0, 0, 0 }
+  },
+}
 
 local _targetPixie =
+{
+  strSprite = "BK3:sprHolo_Accent_Rounded",
+  cr = white,
+  loc =
   {
-    strSprite = "BK3:sprHolo_Accent_Rounded",
-    cr = white,
-    loc =
-    {
-      fPoints = { 0.5, 0.5, 0.5, 0.5 },
-      nOffsets = { 0, 0, 0, 0 }
-    },
-  }
+    fPoints = { 0.5, 0.5, 0.5, 0.5 },
+    nOffsets = { 0, 0, 0, 0 }
+  },
+}
 
 -------------------------------------------------------------------------------
-
 function NPrimeNameplates:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -268,38 +267,44 @@ function NPrimeNameplates:OnLoad()
   self.buffer = {}
   self.challenges = ChallengesLib.GetActiveChallengeList()
 
-  Apollo.RegisterSlashCommand("npnpdebug", 					        "OnNPrimeNameplatesCommandDebug", self)
-  Apollo.RegisterEventHandler("VarChange_FrameCount",       "OnDebuggerUnit", self)
+  Apollo.RegisterSlashCommand("npnpdebug", "OnNPrimeNameplatesCommandDebug", self)
+  Apollo.RegisterEventHandler("VarChange_FrameCount", "OnDebuggerUnit", self)
 
-  Apollo.RegisterSlashCommand("npnp", 						          "OnConfigure", self)
+  Apollo.RegisterSlashCommand("npnp", "OnConfigure", self)
 
-  Apollo.RegisterEventHandler("VarChange_FrameCount",       "OnFrame", self)
-  Apollo.RegisterEventHandler("ChangeWorld", 					      "OnChangeWorld", self)
+  Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrame", self)
+  Apollo.RegisterEventHandler("ChangeWorld", "OnChangeWorld", self)
 
-  Apollo.RegisterEventHandler("UnitCreated", 					      "OnUnitCreated", self)
-  Apollo.RegisterEventHandler("UnitDestroyed",              "OnUnitDestroyed", self)
-  Apollo.RegisterEventHandler("UnitTextBubbleCreate",       "OnTextBubble", self)
-  Apollo.RegisterEventHandler("UnitTextBubblesDestroyed", 	"OnTextBubble", self)
-  Apollo.RegisterEventHandler("TargetUnitChanged", 			    "OnTargetUnitChanged", self)
-  Apollo.RegisterEventHandler("UnitActivationTypeChanged",  "OnUnitActivationTypeChanged", self)
+  Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)
+  Apollo.RegisterEventHandler("UnitDestroyed", "OnUnitDestroyed", self)
+  Apollo.RegisterEventHandler("UnitTextBubbleCreate", "OnTextBubble", self)
+  Apollo.RegisterEventHandler("UnitTextBubblesDestroyed", "OnTextBubble", self)
+  Apollo.RegisterEventHandler("TargetUnitChanged", "OnTargetUnitChanged", self)
+  Apollo.RegisterEventHandler("UnitActivationTypeChanged", "OnUnitActivationTypeChanged", self)
 
-  Apollo.RegisterEventHandler("UnitLevelChanged",           "OnUnitLevelChanged", self)
+  Apollo.RegisterEventHandler("UnitLevelChanged", "OnUnitLevelChanged", self)
 
-  Apollo.RegisterEventHandler("PlayerTitleChange",          "OnPlayerMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitNameChanged",            "OnUnitMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitTitleChanged", 			    "OnUnitMainTextChanged", self)
-  Apollo.RegisterEventHandler("GuildChange", 					      "OnPlayerMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitGuildNameplateChanged",  "OnUnitMainTextChanged", self)
-  Apollo.RegisterEventHandler("UnitMemberOfGuildChange", 		"OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("PlayerTitleChange", "OnPlayerMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitNameChanged", "OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitTitleChanged", "OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("GuildChange", "OnPlayerMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitGuildNameplateChanged", "OnUnitMainTextChanged", self)
+  Apollo.RegisterEventHandler("UnitMemberOfGuildChange", "OnUnitMainTextChanged", self)
 
-  Apollo.RegisterEventHandler("ApplyCCState", 				      "OnCCStateApplied", self)
-  Apollo.RegisterEventHandler("UnitGroupChanged", 			    "OnGroupUpdated", self)
-  Apollo.RegisterEventHandler("ChallengeUnlocked", 			    "OnChallengeUnlocked", self)
-  Apollo.RegisterEventHandler("UnitEnteredCombat", 			    "OnUnitCombatStateChanged", self)
-  Apollo.RegisterEventHandler("UnitPvpFlagsChanged",        "OnUnitPvpFlagsChanged", self)
+  Apollo.RegisterEventHandler("ApplyCCState", "OnCCStateApplied", self)
+  Apollo.RegisterEventHandler("UnitGroupChanged", "OnGroupUpdated", self)
+  Apollo.RegisterEventHandler("ChallengeUnlocked", "OnChallengeUnlocked", self)
+  Apollo.RegisterEventHandler("UnitEnteredCombat", "OnUnitCombatStateChanged", self)
+  Apollo.RegisterEventHandler("UnitPvpFlagsChanged", "OnUnitPvpFlagsChanged", self)
 
-  Apollo.RegisterEventHandler("FriendshipAdd",              "OnFriendshipChanged", self)
-  Apollo.RegisterEventHandler("FriendshipRemove",           "OnFriendshipChanged", self)
+  Apollo.RegisterEventHandler("FriendshipAdd", "OnFriendshipChanged", self)
+  Apollo.RegisterEventHandler("FriendshipRemove", "OnFriendshipChanged", self)
+
+  self.nameplacer = Apollo.GetAddon("Nameplacer")
+  if (self.nameplacer) then
+    Apollo.RegisterEventHandler("Nameplacer_UnitNameplatePositionChanged", "OnNameplatePositionSettingChanged", self)
+  end
+
 
   self.xmlDoc = XmlDoc.CreateFromFile("NPrimeNameplates.xml")
   Apollo.LoadSprites("NPrimeNameplates_Sprites.xml")
@@ -370,54 +375,53 @@ function NPrimeNameplates:OnUnitPvpFlagsChanged(p_unit)
 end
 
 -------------------------------------------------------------------------------
-
 function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   p_nameplate = p_nameplate or {}
   p_target = p_target or false
 
-  p_nameplate.unit 				= p_unit
-  p_nameplate.unitClassID 		= p_unit:IsACharacter() and p_unit:GetClassId() or p_unit:GetRank()
-  p_nameplate.disposition			= p_unit:GetDispositionTo(_player)
-  p_nameplate.isPlayer			= p_unit:IsACharacter()
+  p_nameplate.unit = p_unit
+  p_nameplate.unitClassID = p_unit:IsACharacter() and p_unit:GetClassId() or p_unit:GetRank()
+  p_nameplate.disposition = p_unit:GetDispositionTo(_player)
+  p_nameplate.isPlayer = p_unit:IsACharacter()
 
-  p_nameplate.type 				= p_type
-  p_nameplate.color 				= "FFFFFFFF"
-  p_nameplate.targetNP 			= p_target
-  p_nameplate.hasHealth 			= self:HasHealth(p_unit)
+  p_nameplate.type = p_type
+  p_nameplate.color = "FFFFFFFF"
+  p_nameplate.targetNP = p_target
+  p_nameplate.hasHealth = self:HasHealth(p_unit)
 
   if (p_target) then
     local l_source = self.nameplates[p_unit:GetId()]
-    p_nameplate.ccActiveID 		= l_source and l_source.ccActiveID or -1
-    p_nameplate.ccDuration 		= l_source and l_source.ccDuration or 0
-    p_nameplate.ccDurationMax 	= l_source and l_source.ccDurationMax or 0
+    p_nameplate.ccActiveID = l_source and l_source.ccActiveID or -1
+    p_nameplate.ccDuration = l_source and l_source.ccDuration or 0
+    p_nameplate.ccDurationMax = l_source and l_source.ccDurationMax or 0
   else
-    p_nameplate.ccActiveID 		= -1
-    p_nameplate.ccDuration 		= 0
-    p_nameplate.ccDurationMax 	= 0
+    p_nameplate.ccActiveID = -1
+    p_nameplate.ccDuration = 0
+    p_nameplate.ccDurationMax = 0
   end
 
-  p_nameplate.lowHealth			= false
-  p_nameplate.healthy				= false
-  p_nameplate.prevHealth			= 0
-  p_nameplate.prevShield			= 0
-  p_nameplate.prevAbsorb			= 0
-  p_nameplate.prevArmor			= -2
-  p_nameplate.levelWidth 			= 1
+  p_nameplate.lowHealth = false
+  p_nameplate.healthy = false
+  p_nameplate.prevHealth = 0
+  p_nameplate.prevShield = 0
+  p_nameplate.prevAbsorb = 0
+  p_nameplate.prevArmor = -2
+  p_nameplate.levelWidth = 1
 
-  p_nameplate.iconFlags			= -1
-  p_nameplate.colorFlags			= -1
-  p_nameplate.matrixFlags			= -1
-  p_nameplate.rearrange			= false
+  p_nameplate.iconFlags = -1
+  p_nameplate.colorFlags = -1
+  p_nameplate.matrixFlags = -1
+  p_nameplate.rearrange = false
 
-  p_nameplate.outOfRange			= true
-  p_nameplate.occluded			= p_unit:IsOccluded()
-  p_nameplate.inCombat 			= p_unit:IsInCombat()
-  p_nameplate.inGroup 			= p_unit:IsInYourGroup()
-  p_nameplate.isMounted 			= p_unit:IsMounted()
-  p_nameplate.isObjective			= false
-  p_nameplate.pvpFlagged 			= p_unit:IsPvpFlagged()
-  p_nameplate.hasActivationState	= self:HasActivationState(p_unit)
-  p_nameplate.hasShield			= p_unit:GetShieldCapacityMax() ~= nil and p_unit:GetShieldCapacityMax() ~= 0
+  p_nameplate.outOfRange = true
+  p_nameplate.occluded = p_unit:IsOccluded()
+  p_nameplate.inCombat = p_unit:IsInCombat()
+  p_nameplate.inGroup = p_unit:IsInYourGroup()
+  p_nameplate.isMounted = p_unit:IsMounted()
+  p_nameplate.isObjective = false
+  p_nameplate.pvpFlagged = p_unit:IsPvpFlagged()
+  p_nameplate.hasActivationState = self:HasActivationState(p_unit)
+  p_nameplate.hasShield = p_unit:GetShieldCapacityMax() ~= nil and p_unit:GetShieldCapacityMax() ~= 0
 
   local l_zoomSliderW = _matrix["SliderBarScale"] / 2
   local l_zoomSliderH = _matrix["SliderBarScale"] / 10
@@ -427,25 +431,25 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   if (p_nameplate.form == nil) then
     p_nameplate.form = Apollo.LoadForm(self.xmlDoc, "Nameplate", "InWorldHudStratum", self)
 
-    p_nameplate.containerTop		= p_nameplate.form:FindChild("ContainerTop")
-    p_nameplate.containerMain		= p_nameplate.form:FindChild("ContainerMain")
-    p_nameplate.containerIcons		= p_nameplate.form:FindChild("ContainerIcons")
+    p_nameplate.containerTop = p_nameplate.form:FindChild("ContainerTop")
+    p_nameplate.containerMain = p_nameplate.form:FindChild("ContainerMain")
+    p_nameplate.containerIcons = p_nameplate.form:FindChild("ContainerIcons")
 
-    p_nameplate.textUnitName 		= p_nameplate.form:FindChild("TextUnitName")
-    p_nameplate.textUnitGuild 		= p_nameplate.form:FindChild("TextUnitGuild")
-    p_nameplate.textUnitLevel 		= p_nameplate.form:FindChild("TextUnitLevel")
+    p_nameplate.textUnitName = p_nameplate.form:FindChild("TextUnitName")
+    p_nameplate.textUnitGuild = p_nameplate.form:FindChild("TextUnitGuild")
+    p_nameplate.textUnitLevel = p_nameplate.form:FindChild("TextUnitLevel")
 
-    p_nameplate.containerCC			= p_nameplate.form:FindChild("ContainerCC")
-    p_nameplate.containerCastBar	= p_nameplate.form:FindChild("ContainerCastBar")
+    p_nameplate.containerCC = p_nameplate.form:FindChild("ContainerCC")
+    p_nameplate.containerCastBar = p_nameplate.form:FindChild("ContainerCastBar")
 
-    p_nameplate.iconUnit 			= p_nameplate.form:FindChild("IconUnit")
-    p_nameplate.iconArmor 			= p_nameplate.form:FindChild("IconArmor")
+    p_nameplate.iconUnit = p_nameplate.form:FindChild("IconUnit")
+    p_nameplate.iconArmor = p_nameplate.form:FindChild("IconArmor")
 
-    p_nameplate.health 	= p_nameplate.form:FindChild("BarHealth")
-    p_nameplate.shield 	= p_nameplate.form:FindChild("BarShield")
-    p_nameplate.absorb 	= p_nameplate.form:FindChild("BarAbsorb")
+    p_nameplate.health = p_nameplate.form:FindChild("BarHealth")
+    p_nameplate.shield = p_nameplate.form:FindChild("BarShield")
+    p_nameplate.absorb = p_nameplate.form:FindChild("BarAbsorb")
     p_nameplate.casting = p_nameplate.form:FindChild("BarCasting")
-    p_nameplate.cc 		= p_nameplate.form:FindChild("BarCC")
+    p_nameplate.cc = p_nameplate.form:FindChild("BarCC")
 
     if (not _matrix["ConfigBarIncrements"]) then
       p_nameplate.health:SetFullSprite("Bar_02")
@@ -661,7 +665,7 @@ function NPrimeNameplates:UpdateNameplate(p_nameplate, p_cyclicUpdate)
   self:UpdateArmor(p_nameplate)
 
   if (p_nameplate.hasHealth
-    or (p_nameplate.isPlayer and self:HasHealth(p_nameplate.unit))) then
+      or (p_nameplate.isPlayer and self:HasHealth(p_nameplate.unit))) then
     self:UpdateMainContainer(p_nameplate)
     p_nameplate.hasHealth = true
   end
@@ -684,28 +688,47 @@ function NPrimeNameplates:UpdateNameplate(p_nameplate, p_cyclicUpdate)
   end
 end
 
-function NPrimeNameplates:UpdateAnchoring(p_nameplate)
-  local l_anchorUnit = p_nameplate.unit:IsMounted() and p_nameplate.unit:GetUnitMount() or p_nameplate.unit
-  local l_reposition = false
+function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
+  local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
+  local bReposition = false
 
-  if (_matrix["ConfigDynamicVPos"] and not p_nameplate.isPlayer) then
-    local l_overhead = p_nameplate.unit:GetOverheadAnchor()
-    if (l_overhead ~= nil) then
-      l_reposition = not p_nameplate.occluded and l_overhead.y < 25
+  if (_matrix["ConfigDynamicVPos"] and not tNameplate.isPlayer) then
+
+    if (self.nameplacer) then
+      local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+      local nCodeEnumFloaterLocation
+      if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
+        nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
+        tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+        return
+      end
+    end
+
+
+    local nOverhead = tNameplate.unit:GetOverheadAnchor()
+    if (nOverhead ~= nil) then
+      bReposition = not tNameplate.occluded and nOverhead.y < 25
     end
   end
 
-  p_nameplate.form:SetUnit(l_anchorUnit, l_reposition and 0 or 1)
+  -- Print ("//////////////// nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
+  if (nCodeEnumFloaterLocation) then
+
+    Print("\\\\\\\\\\\\\\\\\ nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
+    tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+  else
+    tNameplate.form:SetUnit(tAnchorUnit, bReposition and 0 or 1)
+  end
 end
 
 function NPrimeNameplates:UpdateMainContainer(p_nameplate)
-  local l_health            = p_nameplate.unit:GetHealth();
-  local l_healthMax         = p_nameplate.unit:GetMaxHealth();
-  local l_shield            = p_nameplate.unit:GetShieldCapacity();
-  local l_shieldMax         = p_nameplate.unit:GetShieldCapacityMax();
-  local l_absorb            = p_nameplate.unit:GetAbsorptionValue();
-  local l_fullHealth        = l_health == l_healthMax;
-  local l_shieldFull        = false;
+  local l_health = p_nameplate.unit:GetHealth();
+  local l_healthMax = p_nameplate.unit:GetMaxHealth();
+  local l_shield = p_nameplate.unit:GetShieldCapacity();
+  local l_shieldMax = p_nameplate.unit:GetShieldCapacityMax();
+  local l_absorb = p_nameplate.unit:GetAbsorptionValue();
+  local l_fullHealth = l_health == l_healthMax;
+  local l_shieldFull = false;
   local l_hiddenBecauseFull = false;
   local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
 
@@ -715,7 +738,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
 
   if (not p_nameplate.targetNP) then
     l_hiddenBecauseFull = (_matrix["ConfigSimpleWhenHealthy"] and l_fullHealth) or
-      (_matrix["ConfigSimpleWhenFullShield"] and l_shieldFull);
+        (_matrix["ConfigSimpleWhenFullShield"] and l_shieldFull);
   end
 
   local l_matrixEnabled = GetFlag(p_nameplate.matrixFlags, F_HEALTH)
@@ -749,7 +772,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
 
     -- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
 
-    if(l_healthTextEnabled) then
+    if (l_healthTextEnabled) then
       --if (_matrix["ConfigHealthText"] and not p_nameplate.inCombat) then
       -- if (_matrix["ConfigHealthText"]) then
       local l_shieldText = ""
@@ -789,10 +812,10 @@ function NPrimeNameplates:UpdateTopContainer(p_nameplate)
 end
 
 function NPrimeNameplates:UpdateNameplateColors(p_nameplate)
-  local l_pvpFlagged 	= GetFlag(p_nameplate.colorFlags, F_PVP)
-  local l_aggroLost 	= GetFlag(p_nameplate.colorFlags, F_AGGRO)
-  local l_cleanse 	= GetFlag(p_nameplate.colorFlags, F_CLEANSE)
-  local l_lowHP 		= GetFlag(p_nameplate.colorFlags, F_LOW_HP)
+  local l_pvpFlagged = GetFlag(p_nameplate.colorFlags, F_PVP)
+  local l_aggroLost = GetFlag(p_nameplate.colorFlags, F_AGGRO)
+  local l_cleanse = GetFlag(p_nameplate.colorFlags, F_CLEANSE)
+  local l_lowHP = GetFlag(p_nameplate.colorFlags, F_LOW_HP)
 
   local l_textColor = _typeColor[p_nameplate.type]
   local l_barColor = _dispColor[p_nameplate.disposition]
@@ -836,9 +859,9 @@ function NPrimeNameplates:GetColorFlags(p_nameplate)
   local l_flags = SetFlag(0, p_nameplate.disposition)
   local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
 
-  if (p_nameplate.inGroup) 	then l_flags = SetFlag(l_flags, F_GROUP) end
+  if (p_nameplate.inGroup) then l_flags = SetFlag(l_flags, F_GROUP) end
   if (p_nameplate.pvpFlagged) then l_flags = SetFlag(l_flags, F_PVP) end
-  if (p_nameplate.lowHealth) 	then l_flags = SetFlag(l_flags, F_LOW_HP) end
+  if (p_nameplate.lowHealth) then l_flags = SetFlag(l_flags, F_LOW_HP) end
 
   if (_matrix["ConfigAggroIndication"]) then
     if (p_nameplate.inCombat and not p_nameplate.isPlayer and p_nameplate.unit:GetTarget() ~= _player) then
@@ -866,7 +889,7 @@ function NPrimeNameplates:GetMatrixFlags(p_nameplate)
   for i = 1, #_matrixCategories do
     local l_matrix = _matrix[_matrixCategories[i] .. l_type]
     if ((type(l_matrix) ~= "number") or (l_matrix == 3) or
-      (l_matrix + (l_inCombat and 1 or 0) == 2)) then
+        (l_matrix + (l_inCombat and 1 or 0) == 2)) then
       l_flags = SetFlag(l_flags, i - 1)
     end
   end
@@ -900,12 +923,12 @@ function NPrimeNameplates:GetNumber(p_current, p_max)
 end
 
 function NPrimeNameplates:UpdateConfiguration()
-  self:UpdateConfigSlider("SliderDrawDistance", 		50, 	155.0, "m")
-  self:UpdateConfigSlider("SliderLowHealth", 	 		 0, 	101.0, "%")
-  self:UpdateConfigSlider("SliderLowHealthFriendly", 	 0, 	101.0, "%")
-  self:UpdateConfigSlider("SliderVerticalOffset", 	 0, 	101.0, "px")
-  self:UpdateConfigSlider("SliderBarScale", 		    50, 	205.0, "%")
-  self:UpdateConfigSlider("SliderFontSize", 			 1, 	  6.2)
+  self:UpdateConfigSlider("SliderDrawDistance", 50, 155.0, "m")
+  self:UpdateConfigSlider("SliderLowHealth", 0, 101.0, "%")
+  self:UpdateConfigSlider("SliderLowHealthFriendly", 0, 101.0, "%")
+  self:UpdateConfigSlider("SliderVerticalOffset", 0, 101.0, "px")
+  self:UpdateConfigSlider("SliderBarScale", 50, 205.0, "%")
+  self:UpdateConfigSlider("SliderFontSize", 1, 6.2)
 end
 
 function NPrimeNameplates:UpdateConfigSlider(p_name, p_min, p_max, p_labelSuffix)
@@ -923,7 +946,7 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
   if (p_target ~= nil and self.nameplates[p_target:GetId()]) then
     self.nameplates[p_target:GetId()].form:Show(false, true)
   end
-  
+
   -- Print(p_target:GetType())
 
   if (p_target ~= nil) then
@@ -970,8 +993,8 @@ function NPrimeNameplates:UpdateLegacyTargetPixie()
 
   _targetPixie.loc.nOffsets[1] = -l_width
   _targetPixie.loc.nOffsets[2] = -l_height
-  _targetPixie.loc.nOffsets[3] =  l_width
-  _targetPixie.loc.nOffsets[4] =  l_height
+  _targetPixie.loc.nOffsets[3] = l_width
+  _targetPixie.loc.nOffsets[4] = l_height
 end
 
 function NPrimeNameplates:OnTextBubble(p_unit, p_text)
@@ -992,6 +1015,27 @@ end
 function NPrimeNameplates:OnPlayerMainTextChanged()
   if (_player == nil) then return end
   self:OnUnitMainTextChanged(_player)
+end
+
+function NPrimeNameplates:OnNameplatePositionSettingChanged(strUnitName, tNameplatePositionSetting)
+  Print("[nPrimeNameplates] OnNameplatePositionSettingChanged; strUnitName: " .. strUnitName .. "; tNameplatePositionSetting: " .. table.tostring(tNameplatePositionSetting))
+
+  if (tNameplatePositionSetting["nAnchorId"]) then
+    -- Print("[nPrimeNameplates] self.nameplates:" .. table.tostring(self.nameplates))
+
+
+
+    for _, nameplate in _pairs(self.nameplates) do
+      Print("[nPrimeNameplates] nameplate.unit:GetName():" .. nameplate.unit:GetName())
+
+      if (nameplate.unit:GetName() == strUnitName) then
+
+        Print("!!!!!!!!!!!!!!!!!! nameplate.unit:GetName():" .. nameplate.unit:GetName())
+
+        self:UpdateAnchoring(nameplate, tNameplatePositionSetting["nAnchorId"])
+      end
+    end
+  end
 end
 
 function NPrimeNameplates:OnUnitMainTextChanged(p_unit)
@@ -1041,7 +1085,6 @@ function NPrimeNameplates:OnChallengeUnlocked()
 end
 
 -------------------------------------------------------------------------------
-
 function string.starts(String, Start)
   return string.sub(String, 1, string.len(Start)) == Start
 end
@@ -1053,6 +1096,8 @@ function NPrimeNameplates:OnConfigure(strCmd, strArg)
     Print("[nPrimeNameplates] Occlusion culling " .. l_occlusionString)
   elseif ((strArg == nil or strArg == "") and _configUI ~= nil) then
     _configUI:Show(not _configUI:IsVisible(), true)
+    l_nameplcerForm = Apollo.LoadForm(self.xmlDoc, "NameplacerConfiguration", nil, self)
+    l_nameplcerForm:Show(true)
   end
 end
 
@@ -1060,7 +1105,7 @@ end
 function NPrimeNameplates:OnConfigButton(p_wndHandler, p_wndControl, p_mouseButton)
   local l_name = p_wndHandler:GetName()
 
-  if 	   (l_name == "ButtonClose") then _configUI:Show(false)
+  if (l_name == "ButtonClose") then _configUI:Show(false)
   elseif (l_name == "ButtonApply") then RequestReloadUI()
   elseif (string.starts(l_name, "Config")) then
     _matrix[l_name] = p_wndHandler:IsChecked()
@@ -1092,29 +1137,29 @@ function NPrimeNameplates:OnMatrixClick(p_wndHandler, wndCtrl, nClick)
 end
 
 function NPrimeNameplates:CheckMatrixIntegrity()
-  if (_type(_matrix["ConfigBarIncrements"]) ~= "boolean") 		then _matrix["ConfigBarIncrements"] 		= true end
-  if (_type(_matrix["ConfigHealthText"]) ~= "boolean") 			then _matrix["ConfigHealthText"] 			= true end
-  if (_type(_matrix["ConfigShowHarvest"]) ~= "boolean") 			then _matrix["ConfigShowHarvest"] 			= true end
-  if (_type(_matrix["ConfigOcclusionCulling"]) ~= "boolean") 		then _matrix["ConfigOcclusionCulling"] 		= true end
-  if (_type(_matrix["ConfigFadeNonTargeted"]) ~= "boolean") 		then _matrix["ConfigFadeNonTargeted"] 		= true end
-  if (_type(_matrix["ConfigDynamicVPos"]) ~= "boolean") 			then _matrix["ConfigDynamicVPos"] 			= true end
+  if (_type(_matrix["ConfigBarIncrements"]) ~= "boolean") then _matrix["ConfigBarIncrements"] = true end
+  if (_type(_matrix["ConfigHealthText"]) ~= "boolean") then _matrix["ConfigHealthText"] = true end
+  if (_type(_matrix["ConfigShowHarvest"]) ~= "boolean") then _matrix["ConfigShowHarvest"] = true end
+  if (_type(_matrix["ConfigOcclusionCulling"]) ~= "boolean") then _matrix["ConfigOcclusionCulling"] = true end
+  if (_type(_matrix["ConfigFadeNonTargeted"]) ~= "boolean") then _matrix["ConfigFadeNonTargeted"] = true end
+  if (_type(_matrix["ConfigDynamicVPos"]) ~= "boolean") then _matrix["ConfigDynamicVPos"] = true end
 
-  if (_type(_matrix["ConfigLargeShield"]) ~= "boolean") 			then _matrix["ConfigLargeShield"] 			= false end
-  if (_type(_matrix["ConfigHealthPct"]) ~= "boolean") 			then _matrix["ConfigHealthPct"] 			= false end
-  if (_type(_matrix["ConfigSimpleWhenHealthy"]) ~= "boolean") 	then _matrix["ConfigSimpleWhenHealthy"] 	= false end
-  if (_type(_matrix["ConfigSimpleWhenFullShield"]) ~= "boolean") 	then _matrix["ConfigSimpleWhenFullShield"] 	= false end
-  if (_type(_matrix["ConfigAggroIndication"]) ~= "boolean") 		then _matrix["ConfigAggroIndication"] 		= false end
-  if (_type(_matrix["ConfigHideAffiliations"]) ~= "boolean") 		then _matrix["ConfigHideAffiliations"] 		= false end
-  if (_type(_matrix["ConfigAlternativeFont"]) ~= "boolean") 		then _matrix["ConfigAlternativeFont"] 		= false end
-  if (_type(_matrix["ConfigLegacyTargeting"]) ~= "boolean") 		then _matrix["ConfigLegacyTargeting"] 		= false end
-  if (_type(_matrix["ConfigCleanseIndicator"]) ~= "boolean") 		then _matrix["ConfigCleanseIndicator"] 		= false end
+  if (_type(_matrix["ConfigLargeShield"]) ~= "boolean") then _matrix["ConfigLargeShield"] = false end
+  if (_type(_matrix["ConfigHealthPct"]) ~= "boolean") then _matrix["ConfigHealthPct"] = false end
+  if (_type(_matrix["ConfigSimpleWhenHealthy"]) ~= "boolean") then _matrix["ConfigSimpleWhenHealthy"] = false end
+  if (_type(_matrix["ConfigSimpleWhenFullShield"]) ~= "boolean") then _matrix["ConfigSimpleWhenFullShield"] = false end
+  if (_type(_matrix["ConfigAggroIndication"]) ~= "boolean") then _matrix["ConfigAggroIndication"] = false end
+  if (_type(_matrix["ConfigHideAffiliations"]) ~= "boolean") then _matrix["ConfigHideAffiliations"] = false end
+  if (_type(_matrix["ConfigAlternativeFont"]) ~= "boolean") then _matrix["ConfigAlternativeFont"] = false end
+  if (_type(_matrix["ConfigLegacyTargeting"]) ~= "boolean") then _matrix["ConfigLegacyTargeting"] = false end
+  if (_type(_matrix["ConfigCleanseIndicator"]) ~= "boolean") then _matrix["ConfigCleanseIndicator"] = false end
 
-  if (_type(_matrix["SliderDrawDistance"]) ~= "number") 			then _matrix["SliderDrawDistance"] 			= 100 end
-  if (_type(_matrix["SliderLowHealth"]) ~= "number") 				then _matrix["SliderLowHealth"] 			= 30 end
-  if (_type(_matrix["SliderLowHealthFriendly"]) ~= "number") 		then _matrix["SliderLowHealthFriendly"] 	= 0 end
-  if (_type(_matrix["SliderVerticalOffset"]) ~= "number") 		then _matrix["SliderVerticalOffset"] 		= 20 end
-  if (_type(_matrix["SliderBarScale"]) ~= "number") 				then _matrix["SliderBarScale"] 				= 100 end
-  if (_type(_matrix["SliderFontSize"]) ~= "number") 				then _matrix["SliderFontSize"] 				= 1 end
+  if (_type(_matrix["SliderDrawDistance"]) ~= "number") then _matrix["SliderDrawDistance"] = 100 end
+  if (_type(_matrix["SliderLowHealth"]) ~= "number") then _matrix["SliderLowHealth"] = 30 end
+  if (_type(_matrix["SliderLowHealthFriendly"]) ~= "number") then _matrix["SliderLowHealthFriendly"] = 0 end
+  if (_type(_matrix["SliderVerticalOffset"]) ~= "number") then _matrix["SliderVerticalOffset"] = 20 end
+  if (_type(_matrix["SliderBarScale"]) ~= "number") then _matrix["SliderBarScale"] = 100 end
+  if (_type(_matrix["SliderFontSize"]) ~= "number") then _matrix["SliderFontSize"] = 1 end
 
   for i, category in _ipairs(_matrixCategories) do
     for j, filter in _ipairs(_matrixFilters) do
@@ -1195,14 +1240,13 @@ function NPrimeNameplates:DistanceToUnit(p_unit)
 end
 
 -------------------------------------------------------------------------------
-
 function NPrimeNameplates:FormatNumber(p_number)
   if (p_number == nil) then return "" end
   local l_result = p_number
-  if 		p_number < 1000 then 			l_result = p_number
-  elseif 	p_number < 1000000 then 		l_result = _weaselStr("$1f1k", 	p_number / 1000)
-  elseif 	p_number < 1000000000 then 		l_result = _weaselStr("$1f1m", 	p_number / 1000000)
-  elseif 	p_number < 1000000000000 then 	l_result = _weaselStr("$1f1b", 	p_number / 1000000)
+  if p_number < 1000 then l_result = p_number
+  elseif p_number < 1000000 then l_result = _weaselStr("$1f1k", p_number / 1000)
+  elseif p_number < 1000000000 then l_result = _weaselStr("$1f1m", p_number / 1000000)
+  elseif p_number < 1000000000000 then l_result = _weaselStr("$1f1b", p_number / 1000000)
   end
   return l_result
 end
@@ -1418,7 +1462,7 @@ function NPrimeNameplates:UpdateIconsPC(p_nameplate)
   local l_icons = 0
 
   if (p_nameplate.unit:IsFriend() or
-    p_nameplate.unit:IsAccountFriend()) then
+      p_nameplate.unit:IsAccountFriend()) then
     l_icons = l_icons + 1
     l_flags = SetFlag(l_flags, F_FRIEND)
   end
@@ -1460,27 +1504,32 @@ end
 function NPrimeNameplates:HasHealth(p_unit)
 
   if (p_unit == nil)
-  then return false end
-  
+  then return false
+  end
+
   if (p_unit:GetMouseOverType() == "Simple" or p_unit:GetMouseOverType() == "SimpleCollidable")
-  then return false end
-  
+  then return false
+  end
+
   if (p_unit:IsDead())
-  then return false end
-  
+  then return false
+  end
+
   if (p_unit:GetMaxHealth() == nil)
-  then return false end
-  
+  then return false
+  end
+
   if (p_unit:GetMaxHealth() == 0)
-  then return false end
+  then return false
+  end
 
   return true
 end
 
 function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
-  if (_blinded) 									then return false end
+  if (_blinded) then return false end
 
-  if (not p_nameplate.onScreen) 					then return false end
+  if (not p_nameplate.onScreen) then return false end
 
   -- if the nameplate has a target set (which probably means it's a player's nameplate)
   if (p_nameplate.targetNP) then
@@ -1489,17 +1538,18 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
   end
 
   -- return false if the nameplate is targeted by the player. Sounds wrong
-  if (_player:GetTarget() == p_nameplate.unit) 	then return false end
+  if (_player:GetTarget() == p_nameplate.unit) then return false end
 
   if (_matrix["ConfigOcclusionCulling"] and
-    p_nameplate.occluded) 						then return false end
+      p_nameplate.occluded) then return false
+  end
 
   if (not GetFlag(p_nameplate.matrixFlags, F_NAMEPLATE)) then
     return p_nameplate.hasActivationState or p_nameplate.isObjective
   end
 
-  if (p_nameplate.unit:IsDead()) 					then return false end
-  if (p_nameplate.outOfRange)						then return false end
+  if (p_nameplate.unit:IsDead()) then return false end
+  if (p_nameplate.outOfRange) then return false end
 
   local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
   if (not p_nameplate.isPlayer and l_isFriendly) then
@@ -1510,30 +1560,30 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
 end
 
 function NPrimeNameplates:GetUnitType(p_unit)
-  if (p_unit == nil) 			then return "Hidden" end
-  if (not p_unit:IsValid()) 	then return "Hidden" end
+  if (p_unit == nil) then return "Hidden" end
+  if (not p_unit:IsValid()) then return "Hidden" end
 
   if (p_unit:CanBeHarvestedBy(_player)) then
     return _matrix["ConfigShowHarvest"] and "Other" or "Hidden"
   end
 
-  if (p_unit:IsThePlayer()) 				then return "Self" end
-  if (p_unit:IsInYourGroup()) 			then return "Group" end
+  if (p_unit:IsThePlayer()) then return "Self" end
+  if (p_unit:IsInYourGroup()) then return "Group" end
 
   local l_type = p_unit:GetType()
-  if (l_type == "BindPoint")    then return "Other" end
-  if (l_type == "PinataLoot")   then return "Other" end
-  if (l_type == "Ghost")        then return "Hidden" end
-  if (l_type == "Mount")        then return "Hidden" end
+  if (l_type == "BindPoint") then return "Other" end
+  if (l_type == "PinataLoot") then return "Other" end
+  if (l_type == "Ghost") then return "Hidden" end
+  if (l_type == "Mount") then return "Hidden" end
   -- if (l_type == "Collectible")  then return "Hidden" end
-  
+
   -- Some interactable objects are identified as NonPlayer
   -- This hack is done to prevent display the nameplate for this kind of units
-  if (l_type == "NonPlayer")  then 
+  if (l_type == "NonPlayer") then
     local l_level = p_unit:GetLevel()
     if (not l_level) then
       return "Hidden"
-    end   
+    end
   end
 
   local l_disposition = p_unit:GetDispositionTo(_player)
@@ -1581,7 +1631,7 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
 
     -- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
 
-    if(l_healthTextEnabled) then
+    if (l_healthTextEnabled) then
       self:UpdateMainContainerHeightWithHealthText(p_nameplate)
     else
       self:UpdateMainContainerHeightWithoutHealthText(p_nameplate)
@@ -1651,7 +1701,6 @@ function NPrimeNameplates:UpdateMainContainerHeightWithoutHealthText(p_nameplate
   local l_zoomSliderH = _matrix["SliderBarScale"] / 10
   local l_shieldHeight = p_nameplate.hasShield and l_zoomSliderH * 1.3 or l_zoomSliderH
   p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shieldHeight)
-
 end
 
 -------------------------------------------------------------------------------
@@ -1659,41 +1708,38 @@ end
 local NPrimeNameplatesInst = NPrimeNameplates:new()
 NPrimeNameplatesInst:Init()
 
-
--------------------------------------------------------------------------------
-
-function table.val_to_str ( v )
-  if "string" == type( v ) then
-    v = string.gsub( v, "\n", "\\n" )
-    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+function table.val_to_str(v)
+  if "string" == type(v) then
+    v = string.gsub(v, "\n", "\\n")
+    if string.match(string.gsub(v, "[^'\"]", ""), '^"+$') then
       return "'" .. v .. "'"
     end
-    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+    return '"' .. string.gsub(v, '"', '\\"') .. '"'
   else
-    return "table" == type( v ) and table.tostring( v ) or
-      tostring( v )
+    return "table" == type(v) and table.tostring(v) or
+        tostring(v)
   end
 end
 
-function table.key_to_str ( k )
-  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+function table.key_to_str(k)
+  if "string" == type(k) and string.match(k, "^[_%a][_%a%d]*$") then
     return k
   else
-    return "[" .. table.val_to_str( k ) .. "]"
+    return "[" .. table.val_to_str(k) .. "]"
   end
 end
 
-function table.tostring( tbl )
+function table.tostring(tbl)
   local result, done = {}, {}
-  for k, v in ipairs( tbl ) do
-    table.insert( result, table.val_to_str( v ) )
-    done[ k ] = true
+  for k, v in ipairs(tbl) do
+    table.insert(result, table.val_to_str(v))
+    done[k] = true
   end
-  for k, v in pairs( tbl ) do
-    if not done[ k ] then
-      table.insert( result,
-        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+  for k, v in pairs(tbl) do
+    if not done[k] then
+      table.insert(result,
+        table.key_to_str(k) .. "=" .. table.val_to_str(v))
     end
   end
-  return "{" .. table.concat( result, "," ) .. "}"
+  return "{" .. table.concat(result, ",") .. "}"
 end
