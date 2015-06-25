@@ -375,178 +375,227 @@ function NPrimeNameplates:OnUnitPvpFlagsChanged(p_unit)
 end
 
 -------------------------------------------------------------------------------
-function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
-  p_nameplate = p_nameplate or {}
+function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
+  tNameplate = tNameplate or {}
   p_target = p_target or false
 
-  p_nameplate.unit = p_unit
-  p_nameplate.unitClassID = p_unit:IsACharacter() and p_unit:GetClassId() or p_unit:GetRank()
-  p_nameplate.disposition = p_unit:GetDispositionTo(_player)
-  p_nameplate.isPlayer = p_unit:IsACharacter()
+  tNameplate.unit = tUnit
+  tNameplate.unitClassID = tUnit:IsACharacter() and tUnit:GetClassId() or tUnit:GetRank()
+  tNameplate.disposition = tUnit:GetDispositionTo(_player)
+  tNameplate.isPlayer = tUnit:IsACharacter()
 
-  p_nameplate.type = p_type
-  p_nameplate.color = "FFFFFFFF"
-  p_nameplate.targetNP = p_target
-  p_nameplate.hasHealth = self:HasHealth(p_unit)
+  tNameplate.type = p_type
+  tNameplate.color = "FFFFFFFF"
+  tNameplate.targetNP = p_target
+  tNameplate.hasHealth = self:HasHealth(tUnit)
 
   if (p_target) then
-    local l_source = self.nameplates[p_unit:GetId()]
-    p_nameplate.ccActiveID = l_source and l_source.ccActiveID or -1
-    p_nameplate.ccDuration = l_source and l_source.ccDuration or 0
-    p_nameplate.ccDurationMax = l_source and l_source.ccDurationMax or 0
+    local l_source = self.nameplates[tUnit:GetId()]
+    tNameplate.ccActiveID = l_source and l_source.ccActiveID or -1
+    tNameplate.ccDuration = l_source and l_source.ccDuration or 0
+    tNameplate.ccDurationMax = l_source and l_source.ccDurationMax or 0
   else
-    p_nameplate.ccActiveID = -1
-    p_nameplate.ccDuration = 0
-    p_nameplate.ccDurationMax = 0
+    tNameplate.ccActiveID = -1
+    tNameplate.ccDuration = 0
+    tNameplate.ccDurationMax = 0
   end
 
-  p_nameplate.lowHealth = false
-  p_nameplate.healthy = false
-  p_nameplate.prevHealth = 0
-  p_nameplate.prevShield = 0
-  p_nameplate.prevAbsorb = 0
-  p_nameplate.prevArmor = -2
-  p_nameplate.levelWidth = 1
+  tNameplate.lowHealth = false
+  tNameplate.healthy = false
+  tNameplate.prevHealth = 0
+  tNameplate.prevShield = 0
+  tNameplate.prevAbsorb = 0
+  tNameplate.prevArmor = -2
+  tNameplate.levelWidth = 1
 
-  p_nameplate.iconFlags = -1
-  p_nameplate.colorFlags = -1
-  p_nameplate.matrixFlags = -1
-  p_nameplate.rearrange = false
+  tNameplate.iconFlags = -1
+  tNameplate.colorFlags = -1
+  tNameplate.matrixFlags = -1
+  tNameplate.rearrange = false
 
-  p_nameplate.outOfRange = true
-  p_nameplate.occluded = p_unit:IsOccluded()
-  p_nameplate.inCombat = p_unit:IsInCombat()
-  p_nameplate.inGroup = p_unit:IsInYourGroup()
-  p_nameplate.isMounted = p_unit:IsMounted()
-  p_nameplate.isObjective = false
-  p_nameplate.pvpFlagged = p_unit:IsPvpFlagged()
-  p_nameplate.hasActivationState = self:HasActivationState(p_unit)
-  p_nameplate.hasShield = p_unit:GetShieldCapacityMax() ~= nil and p_unit:GetShieldCapacityMax() ~= 0
+  tNameplate.outOfRange = true
+  tNameplate.occluded = tUnit:IsOccluded()
+  tNameplate.inCombat = tUnit:IsInCombat()
+  tNameplate.inGroup = tUnit:IsInYourGroup()
+  tNameplate.isMounted = tUnit:IsMounted()
+  tNameplate.isObjective = false
+  tNameplate.pvpFlagged = tUnit:IsPvpFlagged()
+  tNameplate.hasActivationState = self:HasActivationState(tUnit)
+  tNameplate.hasShield = tUnit:GetShieldCapacityMax() ~= nil and tUnit:GetShieldCapacityMax() ~= 0
 
   local l_zoomSliderW = _matrix["SliderBarScale"] / 2
   local l_zoomSliderH = _matrix["SliderBarScale"] / 10
   local l_fontSize = _matrix["SliderFontSize"]
   local l_font = _matrix["ConfigAlternativeFont"] and _fontSecondary or _fontPrimary
 
-  if (p_nameplate.form == nil) then
-    p_nameplate.form = Apollo.LoadForm(self.xmlDoc, "Nameplate", "InWorldHudStratum", self)
+  if (tNameplate.form == nil) then
+    tNameplate.form = Apollo.LoadForm(self.xmlDoc, "Nameplate", "InWorldHudStratum", self)
 
-    p_nameplate.containerTop = p_nameplate.form:FindChild("ContainerTop")
-    p_nameplate.containerMain = p_nameplate.form:FindChild("ContainerMain")
-    p_nameplate.containerIcons = p_nameplate.form:FindChild("ContainerIcons")
+    tNameplate.containerTop = tNameplate.form:FindChild("ContainerTop")
+    tNameplate.containerMain = tNameplate.form:FindChild("ContainerMain")
+    tNameplate.containerIcons = tNameplate.form:FindChild("ContainerIcons")
 
-    p_nameplate.textUnitName = p_nameplate.form:FindChild("TextUnitName")
-    p_nameplate.textUnitGuild = p_nameplate.form:FindChild("TextUnitGuild")
-    p_nameplate.textUnitLevel = p_nameplate.form:FindChild("TextUnitLevel")
+    tNameplate.textUnitName = tNameplate.form:FindChild("TextUnitName")
+    tNameplate.textUnitGuild = tNameplate.form:FindChild("TextUnitGuild")
+    tNameplate.textUnitLevel = tNameplate.form:FindChild("TextUnitLevel")
 
-    p_nameplate.containerCC = p_nameplate.form:FindChild("ContainerCC")
-    p_nameplate.containerCastBar = p_nameplate.form:FindChild("ContainerCastBar")
+    tNameplate.containerCC = tNameplate.form:FindChild("ContainerCC")
+    tNameplate.containerCastBar = tNameplate.form:FindChild("ContainerCastBar")
 
-    p_nameplate.iconUnit = p_nameplate.form:FindChild("IconUnit")
-    p_nameplate.iconArmor = p_nameplate.form:FindChild("IconArmor")
+    tNameplate.iconUnit = tNameplate.form:FindChild("IconUnit")
+    tNameplate.iconArmor = tNameplate.form:FindChild("IconArmor")
 
-    p_nameplate.health = p_nameplate.form:FindChild("BarHealth")
-    p_nameplate.shield = p_nameplate.form:FindChild("BarShield")
-    p_nameplate.absorb = p_nameplate.form:FindChild("BarAbsorb")
-    p_nameplate.casting = p_nameplate.form:FindChild("BarCasting")
-    p_nameplate.cc = p_nameplate.form:FindChild("BarCC")
+    tNameplate.health = tNameplate.form:FindChild("BarHealth")
+    tNameplate.shield = tNameplate.form:FindChild("BarShield")
+    tNameplate.absorb = tNameplate.form:FindChild("BarAbsorb")
+    tNameplate.casting = tNameplate.form:FindChild("BarCasting")
+    tNameplate.cc = tNameplate.form:FindChild("BarCC")
 
     if (not _matrix["ConfigBarIncrements"]) then
-      p_nameplate.health:SetFullSprite("Bar_02")
-      p_nameplate.health:SetFillSprite("Bar_02")
-      p_nameplate.absorb:SetFullSprite("Bar_02")
-      p_nameplate.absorb:SetFillSprite("Bar_02")
+      tNameplate.health:SetFullSprite("Bar_02")
+      tNameplate.health:SetFillSprite("Bar_02")
+      tNameplate.absorb:SetFullSprite("Bar_02")
+      tNameplate.absorb:SetFillSprite("Bar_02")
     end
 
-    p_nameplate.casting:SetMax(100)
+    tNameplate.casting:SetMax(100)
 
-    local l_vOffset = _matrix["SliderVerticalOffset"]
+    self:InitNameplateVerticalOffset(tNameplate)
+
     local l_fontH = l_font[l_fontSize].height
     local l_fontGuild = l_fontSize > 1 and l_fontSize - 1 or l_fontSize
 
-    p_nameplate.form:SetAnchorOffsets(-200, -75 - l_vOffset, 200, 75 - l_vOffset)
-    p_nameplate.iconArmor:SetFont(l_font[l_fontSize].font)
+    tNameplate.form:SetAnchorOffsets(-200, -75 - l_vOffset, 200, 75 - l_vOffset)
+    tNameplate.iconArmor:SetFont(l_font[l_fontSize].font)
 
-    p_nameplate.containerTop:SetAnchorOffsets(0, 0, 0, l_font[l_fontSize].height * 0.8)
-    p_nameplate.iconUnit:SetAnchorOffsets(-l_fontH * 0.9, 0, l_fontH * 0.1, 0)
+    tNameplate.containerTop:SetAnchorOffsets(0, 0, 0, l_font[l_fontSize].height * 0.8)
+    tNameplate.iconUnit:SetAnchorOffsets(-l_fontH * 0.9, 0, l_fontH * 0.1, 0)
 
-    p_nameplate.textUnitName:SetFont(l_font[l_fontSize].font)
-    p_nameplate.textUnitLevel:SetFont(l_font[l_fontSize].font)
-    p_nameplate.textUnitGuild:SetFont(l_font[l_fontGuild].font)
-    p_nameplate.textUnitGuild:SetAnchorOffsets(0, 0, 0, l_font[l_fontGuild].height * 0.9)
+    tNameplate.textUnitName:SetFont(l_font[l_fontSize].font)
+    tNameplate.textUnitLevel:SetFont(l_font[l_fontSize].font)
+    tNameplate.textUnitGuild:SetFont(l_font[l_fontGuild].font)
+    tNameplate.textUnitGuild:SetAnchorOffsets(0, 0, 0, l_font[l_fontGuild].height * 0.9)
 
-    p_nameplate.containerCastBar:SetFont(l_font[l_fontSize].font)
-    p_nameplate.containerCC:SetFont(l_font[l_fontSize].font)
-    p_nameplate.containerCastBar:SetAnchorOffsets(0, 0, 0, (l_font[l_fontSize].height * 0.75) + l_zoomSliderH)
-    p_nameplate.containerCC:SetAnchorOffsets(0, 0, 0, (l_font[l_fontSize].height * 0.75) + l_zoomSliderH)
+    tNameplate.containerCastBar:SetFont(l_font[l_fontSize].font)
+    tNameplate.containerCC:SetFont(l_font[l_fontSize].font)
+    tNameplate.containerCastBar:SetAnchorOffsets(0, 0, 0, (l_font[l_fontSize].height * 0.75) + l_zoomSliderH)
+    tNameplate.containerCC:SetAnchorOffsets(0, 0, 0, (l_font[l_fontSize].height * 0.75) + l_zoomSliderH)
 
-    p_nameplate.containerMain:SetFont(l_font[l_fontSize].font)
+    tNameplate.containerMain:SetFont(l_font[l_fontSize].font)
 
-    p_nameplate.casting:SetAnchorOffsets(-l_zoomSliderW, (l_zoomSliderH * 0.25), l_zoomSliderW, l_zoomSliderH)
-    p_nameplate.cc:SetAnchorOffsets(-l_zoomSliderW, (l_zoomSliderH * 0.25), l_zoomSliderW, l_zoomSliderH)
+    tNameplate.casting:SetAnchorOffsets(-l_zoomSliderW, (l_zoomSliderH * 0.25), l_zoomSliderW, l_zoomSliderH)
+    tNameplate.cc:SetAnchorOffsets(-l_zoomSliderW, (l_zoomSliderH * 0.25), l_zoomSliderW, l_zoomSliderH)
 
-    local l_armorWidth = p_nameplate.iconArmor:GetHeight() / 2
-    p_nameplate.iconArmor:SetAnchorOffsets(-l_armorWidth, 0, l_armorWidth, 0)
+    local l_armorWidth = tNameplate.iconArmor:GetHeight() / 2
+    tNameplate.iconArmor:SetAnchorOffsets(-l_armorWidth, 0, l_armorWidth, 0)
   end
 
-  p_nameplate.matrixFlags = self:GetMatrixFlags(p_nameplate)
+  tNameplate.matrixFlags = self:GetMatrixFlags(tNameplate)
 
-  self:UpdateAnchoring(p_nameplate)
+  self:UpdateAnchoring(tNameplate)
 
-  p_nameplate.textUnitName:SetData(p_unit)
-  p_nameplate.health:SetData(p_unit)
-  p_nameplate.onScreen = p_nameplate.form:IsOnScreen()
+  tNameplate.textUnitName:SetData(tUnit)
+  tNameplate.health:SetData(tUnit)
+  tNameplate.onScreen = tNameplate.form:IsOnScreen()
 
-  self:UpdateOpacity(p_nameplate)
-  p_nameplate.containerCC:Show(false)
-  p_nameplate.containerMain:Show(false)
-  p_nameplate.containerCastBar:Show(false)
-  p_nameplate.textUnitGuild:Show(false)
-  p_nameplate.iconArmor:Show(false)
+  self:UpdateOpacity(tNameplate)
+  tNameplate.containerCC:Show(false)
+  tNameplate.containerMain:Show(false)
+  tNameplate.containerCastBar:Show(false)
+  tNameplate.textUnitGuild:Show(false)
+  tNameplate.iconArmor:Show(false)
 
-  p_nameplate.containerMain:SetText("")
-  local l_heightMod = (p_nameplate.hasShield and 1.3 or 1)
+  tNameplate.containerMain:SetText("")
+  local l_heightMod = (tNameplate.hasShield and 1.3 or 1)
 
   local l_shieldHeightMod = _matrix["ConfigLargeShield"] and 0.5 or 0.35
-  local l_shieldHeight = p_nameplate.health:GetHeight() * l_shieldHeightMod
-  local l_shield = p_nameplate.hasShield and l_zoomSliderH * 1.3 or l_zoomSliderH
+  local l_shieldHeight = tNameplate.health:GetHeight() * l_shieldHeightMod
+  local l_shield = tNameplate.hasShield and l_zoomSliderH * 1.3 or l_zoomSliderH
 
 
   local l_healthTextHeight = _matrix["ConfigHealthText"] and (l_font[l_fontSize].height * 0.75) or 0
 
-  p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shield + l_healthTextHeight)
+  tNameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shield + l_healthTextHeight)
 
-  p_nameplate.shield:Show(p_nameplate.hasShield)
-  p_nameplate.health:SetAnchorOffsets(-l_zoomSliderW, 0, l_zoomSliderW, l_zoomSliderH * l_heightMod)
+  tNameplate.shield:Show(tNameplate.hasShield)
+  tNameplate.health:SetAnchorOffsets(-l_zoomSliderW, 0, l_zoomSliderW, l_zoomSliderH * l_heightMod)
 
-  p_nameplate.shield:SetAnchorOffsets(0, _min(-l_shieldHeight, -3), 0, 0)
+  tNameplate.shield:SetAnchorOffsets(0, _min(-l_shieldHeight, -3), 0, 0)
 
-  if (p_nameplate.hasHealth) then
-    self:UpdateMainContainer(p_nameplate)
+  if (tNameplate.hasHealth) then
+    self:UpdateMainContainer(tNameplate)
   end
 
-  p_nameplate.colorFlags = self:GetColorFlags(p_nameplate)
-  self:UpdateNameplateColors(p_nameplate)
+  tNameplate.colorFlags = self:GetColorFlags(tNameplate)
+  self:UpdateNameplateColors(tNameplate)
 
-  p_nameplate.containerIcons:DestroyAllPixies()
-  if (p_nameplate.isPlayer) then
-    self:UpdateIconsPC(p_nameplate)
+  tNameplate.containerIcons:DestroyAllPixies()
+  if (tNameplate.isPlayer) then
+    self:UpdateIconsPC(tNameplate)
   else
-    self:UpdateIconsNPC(p_nameplate)
+    self:UpdateIconsNPC(tNameplate)
   end
 
-  self:UpdateTextNameGuild(p_nameplate)
-  self:UpdateTextLevel(p_nameplate)
-  self:UpdateArmor(p_nameplate)
-  self:InitClassIcon(p_nameplate)
+  self:UpdateTextNameGuild(tNameplate)
+  self:UpdateTextLevel(tNameplate)
+  self:UpdateArmor(tNameplate)
+  self:InitClassIcon(tNameplate)
 
-  p_nameplate.form:Show(self:GetNameplateVisibility(p_nameplate), true)
+  tNameplate.form:Show(self:GetNameplateVisibility(tNameplate), true)
 
-  self:UpdateTopContainer(p_nameplate)
+  self:UpdateTopContainer(tNameplate)
 
-  p_nameplate.form:ArrangeChildrenVert(1)
+  tNameplate.form:ArrangeChildrenVert(1)
 
-  return p_nameplate
+  return tNameplate
+end
+
+function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
+  local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
+  local bReposition = false
+  local nCodeEnumFloaterLocation
+
+  if (_matrix["ConfigDynamicVPos"] and not tNameplate.isPlayer) then
+
+    local tOverhead = tNameplate.unit:GetOverheadAnchor()
+    if (tOverhead ~= nil) then
+      bReposition = not tNameplate.occluded and tOverhead.y < 25
+    end
+  end
+
+  if (self.nameplacer) then
+    local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+
+    if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
+      nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
+      -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+      return
+    end
+  end
+
+  -- Print ("//////////////// nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
+  if (bReposition) then
+
+    Print("\\\\\\\\\\\\\\\\\ bReposition: " .. tostring(bReposition))
+    tNameplate.form:SetUnit(tAnchorUnit, 0)
+  else
+    Print("\\\\\\\\\\\\\\\\\ nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
+    tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation and nCodeEnumFloaterLocation or 1)
+  end
+end
+
+function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate)
+  local nVerticalOffset = _matrix["SliderVerticalOffset"]
+  local nNameplacerVerticalOffset = 0
+
+  if (self.nameplacer) then
+    local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+    if (tNameplatePositionSetting and tNameplatePositionSetting["nVerticalOffset"]) then
+      nNameplacerVerticalOffset = tNameplatePositionSetting["nVerticalOffset"]
+    end
+  end
+
+  self:SetNameplateVerticalOffset(tNameplate, nVerticalOffset, nNameplacerVerticalOffset)
 end
 
 function NPrimeNameplates:OnUnitCreated(p_unit)
@@ -704,7 +753,6 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
       end
     end
 
-
     local nOverhead = tNameplate.unit:GetOverheadAnchor()
     if (nOverhead ~= nil) then
       bReposition = not tNameplate.occluded and nOverhead.y < 25
@@ -750,7 +798,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
   end
 
   if (l_visible) then
-    if (l_health ~= prevHealth) then
+    if (l_health ~= p_nameplate.prevHealth) then
       local l_temp = l_isFriendly and "SliderLowHealthFriendly" or "SliderLowHealth"
       if (_matrix[l_temp] ~= 0) then
         local l_cutoff = (_matrix[l_temp] / 100)
@@ -760,11 +808,11 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
       self:SetProgressBar(p_nameplate.health, l_health, l_healthMax)
     end
 
-    if (l_absorb ~= prevAbsorb) then
+    if (l_absorb ~= p_nameplate.prevAbsorb) then
       self:SetProgressBar(p_nameplate.absorb, l_absorb, l_healthMax)
     end
 
-    if (p_nameplate.hasShield and l_shield ~= prevShield) then
+    if (p_nameplate.hasShield and l_shield ~= p_nameplate.prevShield) then
       self:SetProgressBar(p_nameplate.shield, l_shield, l_shieldMax)
     end
 
@@ -1020,19 +1068,21 @@ end
 function NPrimeNameplates:OnNameplatePositionSettingChanged(strUnitName, tNameplatePositionSetting)
   Print("[nPrimeNameplates] OnNameplatePositionSettingChanged; strUnitName: " .. strUnitName .. "; tNameplatePositionSetting: " .. table.tostring(tNameplatePositionSetting))
 
-  if (tNameplatePositionSetting["nAnchorId"]) then
-    -- Print("[nPrimeNameplates] self.nameplates:" .. table.tostring(self.nameplates))
+  if (not tNameplatePositionSetting or (not tNameplatePositionSetting["nAnchorId"] and not tNameplatePositionSetting["nVerticalOffset"])) then return end
 
 
 
-    for _, nameplate in _pairs(self.nameplates) do
-      Print("[nPrimeNameplates] nameplate.unit:GetName():" .. nameplate.unit:GetName())
+  for _, tNameplate in _pairs(self.nameplates) do
+    -- Print("[nPrimeNameplates] nameplate.unit:GetName():" .. nameplate.unit:GetName())
 
-      if (nameplate.unit:GetName() == strUnitName) then
+    if (tNameplate.unit:GetName() == strUnitName) then
 
-        Print("!!!!!!!!!!!!!!!!!! nameplate.unit:GetName():" .. nameplate.unit:GetName())
+      Print("!!!!!!!!!!!!!!!!!! nameplate.unit:GetName():" .. tNameplate.unit:GetName())
 
-        self:UpdateAnchoring(nameplate, tNameplatePositionSetting["nAnchorId"])
+      if (tNameplatePositionSetting["nAnchorId"]) then
+        self:UpdateAnchoring(tNameplate, tNameplatePositionSetting["nAnchorId"])
+      else
+        self:InitNameplateVerticalOffset(tNameplate)
       end
     end
   end
@@ -1096,8 +1146,6 @@ function NPrimeNameplates:OnConfigure(strCmd, strArg)
     Print("[nPrimeNameplates] Occlusion culling " .. l_occlusionString)
   elseif ((strArg == nil or strArg == "") and _configUI ~= nil) then
     _configUI:Show(not _configUI:IsVisible(), true)
-    l_nameplcerForm = Apollo.LoadForm(self.xmlDoc, "NameplacerConfiguration", nil, self)
-    l_nameplcerForm:Show(true)
   end
 end
 
@@ -1655,6 +1703,10 @@ end
 function NPrimeNameplates:SetProgressBar(p_bar, p_current, p_max)
   p_bar:SetMax(p_max)
   p_bar:SetProgress(p_current)
+end
+
+function NPrimeNameplates:SetNameplateVerticalOffset(tNameplate, nVerticalOffset, nNameplacerVerticalOffset)
+  tNameplate.form:SetAnchorOffsets(-200, -75 - nVerticalOffset + nNameplacerVerticalOffset, 200, 75 - nVerticalOffset + nNameplacerVerticalOffset)
 end
 
 function NPrimeNameplates:AllocateNameplate(p_unit)
