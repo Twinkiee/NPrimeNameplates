@@ -465,7 +465,6 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
     local l_fontH = l_font[l_fontSize].height
     local l_fontGuild = l_fontSize > 1 and l_fontSize - 1 or l_fontSize
 
-    tNameplate.form:SetAnchorOffsets(-200, -75 - l_vOffset, 200, 75 - l_vOffset)
     tNameplate.iconArmor:SetFont(l_font[l_fontSize].font)
 
     tNameplate.containerTop:SetAnchorOffsets(0, 0, 0, l_font[l_fontSize].height * 0.8)
@@ -492,6 +491,7 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
 
   tNameplate.matrixFlags = self:GetMatrixFlags(tNameplate)
 
+  -- self:InitNameplateVerticalOffset(tNameplate)
   self:UpdateAnchoring(tNameplate)
 
   tNameplate.textUnitName:SetData(tUnit)
@@ -545,6 +545,24 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
 
   self:UpdateTopContainer(tNameplate)
 
+
+  -- TEST CLEANSABLE FRAME
+  --[[
+  local nPixieId = tNameplate.containerMain:AddPixie({
+    bLine = false,
+    strSprite = "NPrimeNameplates_Sprites:FrameGlow",
+    cr = _typeColor["Cleanse"],
+    loc = {
+      fPoints = { 0.5, 0, 0.5, 0 },
+      nOffsets = { -62, -10, 62, 20 }
+    },
+    flagsText = {
+      DT_CENTER = true,
+      DT_VCENTER = true
+    }
+  })
+  --]]
+
   tNameplate.form:ArrangeChildrenVert(1)
 
   return tNameplate
@@ -553,7 +571,7 @@ end
 function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
   local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
   local bReposition = false
-  local nCodeEnumFloaterLocation
+  local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
 
   if (_matrix["ConfigDynamicVPos"] and not tNameplate.isPlayer) then
 
@@ -563,36 +581,52 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
     end
   end
 
-  if (self.nameplacer) then
-    local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+  if (self.nameplacer and not bReposition) then
+    if (not nCodeEnumFloaterLocation) then
+      local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
 
-    if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
-      nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
-      -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-      return
+      if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
+        nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
+        -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+      end
     end
-  end
 
-  -- Print ("//////////////// nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
-  if (bReposition) then
+    -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
 
-    Print("\\\\\\\\\\\\\\\\\ bReposition: " .. tostring(bReposition))
+    if (nCodeEnumFloaterLocation) then
+      tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+    elseif (not tNameplate.form:GetUnit(tAnchorUnit)) then
+      tNameplate.form:SetUnit(tAnchorUnit, 1)
+    end
+  elseif (bReposition) then
     tNameplate.form:SetUnit(tAnchorUnit, 0)
-  else
-    Print("\\\\\\\\\\\\\\\\\ nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
-    tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation and nCodeEnumFloaterLocation or 1)
   end
 end
 
-function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate)
+function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate, nInputNameplacerVerticalOffset)
   local nVerticalOffset = _matrix["SliderVerticalOffset"]
-  local nNameplacerVerticalOffset = 0
+  local nNameplacerVerticalOffset = nInputNameplacerVerticalOffset
 
-  if (self.nameplacer) then
-    local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
-    if (tNameplatePositionSetting and tNameplatePositionSetting["nVerticalOffset"]) then
-      nNameplacerVerticalOffset = tNameplatePositionSetting["nVerticalOffset"]
+  -- Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); " .. tostring(nInputNameplacerVerticalOffset))
+
+  if (self.nameplacer or nNameplacerVerticalOffset) then
+
+    -- Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); tNameplate.unit:GetName(): " .. tNameplate.unit:GetName() .. "; nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
+
+    if (not nNameplacerVerticalOffset) then
+      local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+
+      if (tNameplatePositionSetting) then
+        -- Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplatePositionSetting[\"nVerticalOffset\"]); " .. tostring(tNameplatePositionSetting["nVerticalOffset"]))
+        nNameplacerVerticalOffset = tNameplatePositionSetting["nVerticalOffset"]
+      end
     end
+  end
+
+  if (not nNameplacerVerticalOffset) then
+
+    -- Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
+    nNameplacerVerticalOffset = 0
   end
 
   self:SetNameplateVerticalOffset(tNameplate, nVerticalOffset, nNameplacerVerticalOffset)
@@ -613,6 +647,7 @@ function NPrimeNameplates:UpdateBuffer()
 end
 
 function NPrimeNameplates:OnFrame()
+
   if (_player == nil) then
     _player = GameLib.GetPlayerUnit()
     if (_player ~= nil) then
@@ -648,9 +683,11 @@ function NPrimeNameplates:OnFrame()
 
   _count = (_count + _cycleSize > l_c) and 0 or _count + _cycleSize
 
+  --[[
   if (_targetNP ~= nil) then
     self:UpdateNameplate(_targetNP, true)
   end
+  ]]
 
   if (_configUI ~= nil and _configUI:IsVisible()) then
     self:UpdateConfiguration()
@@ -737,6 +774,7 @@ function NPrimeNameplates:UpdateNameplate(p_nameplate, p_cyclicUpdate)
   end
 end
 
+--[[
 function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
   local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
   local bReposition = false
@@ -768,6 +806,7 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
     tNameplate.form:SetUnit(tAnchorUnit, bReposition and 0 or 1)
   end
 end
+]]
 
 function NPrimeNameplates:UpdateMainContainer(p_nameplate)
   local l_health = p_nameplate.unit:GetHealth();
@@ -798,7 +837,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
   end
 
   if (l_visible) then
-    if (l_health ~= p_nameplate.prevHealth) then
+    if (l_health ~= prevHealth) then
       local l_temp = l_isFriendly and "SliderLowHealthFriendly" or "SliderLowHealth"
       if (_matrix[l_temp] ~= 0) then
         local l_cutoff = (_matrix[l_temp] / 100)
@@ -808,11 +847,11 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
       self:SetProgressBar(p_nameplate.health, l_health, l_healthMax)
     end
 
-    if (l_absorb ~= p_nameplate.prevAbsorb) then
+    if (l_absorb ~= prevAbsorb) then
       self:SetProgressBar(p_nameplate.absorb, l_absorb, l_healthMax)
     end
 
-    if (p_nameplate.hasShield and l_shield ~= p_nameplate.prevShield) then
+    if (p_nameplate.hasShield and l_shield ~= prevShield) then
       self:SetProgressBar(p_nameplate.shield, l_shield, l_shieldMax)
     end
 
@@ -988,7 +1027,9 @@ function NPrimeNameplates:UpdateConfigSlider(p_name, p_min, p_max, p_labelSuffix
   end
 end
 
+
 function NPrimeNameplates:OnTargetUnitChanged(p_target)
+
   if (_player == nil) then return end
 
   if (p_target ~= nil and self.nameplates[p_target:GetId()]) then
@@ -1000,6 +1041,8 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
   if (p_target ~= nil) then
     local l_type = self:GetUnitType(p_target)
     if (_targetNP == nil) then
+
+      -- Print(">>> OnTargetUnitChanged; initializing new nameplate")
       _targetNP = self:InitNameplate(p_target, nil, l_type, true)
 
       if (_matrix["ConfigLegacyTargeting"]) then
@@ -1070,8 +1113,16 @@ function NPrimeNameplates:OnNameplatePositionSettingChanged(strUnitName, tNamepl
 
   if (not tNameplatePositionSetting or (not tNameplatePositionSetting["nAnchorId"] and not tNameplatePositionSetting["nVerticalOffset"])) then return end
 
+  if (_targetNP and _targetNP.unit and _targetNP.unit:GetName() == strUnitName) then
+    if (tNameplatePositionSetting["nAnchorId"]) then
+      self:UpdateAnchoring(_targetNP, tNameplatePositionSetting["nAnchorId"])
+    end
+    if (tNameplatePositionSetting["nVerticalOffset"]) then
+      self:InitNameplateVerticalOffset(_targetNP, tNameplatePositionSetting["nVerticalOffset"])
+    end
 
-
+    return
+  end
   for _, tNameplate in _pairs(self.nameplates) do
     -- Print("[nPrimeNameplates] nameplate.unit:GetName():" .. nameplate.unit:GetName())
 
@@ -1081,8 +1132,9 @@ function NPrimeNameplates:OnNameplatePositionSettingChanged(strUnitName, tNamepl
 
       if (tNameplatePositionSetting["nAnchorId"]) then
         self:UpdateAnchoring(tNameplate, tNameplatePositionSetting["nAnchorId"])
-      else
-        self:InitNameplateVerticalOffset(tNameplate)
+      end
+      if (tNameplatePositionSetting["nVerticalOffset"]) then
+        self:InitNameplateVerticalOffset(tNameplate, tNameplatePositionSetting["nVerticalOffset"])
       end
     end
   end
@@ -1706,7 +1758,9 @@ function NPrimeNameplates:SetProgressBar(p_bar, p_current, p_max)
 end
 
 function NPrimeNameplates:SetNameplateVerticalOffset(tNameplate, nVerticalOffset, nNameplacerVerticalOffset)
-  tNameplate.form:SetAnchorOffsets(-200, -75 - nVerticalOffset + nNameplacerVerticalOffset, 200, 75 - nVerticalOffset + nNameplacerVerticalOffset)
+
+  -- Print("SetNameplateVerticalOffset; nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
+  tNameplate.form:SetAnchorOffsets(-200, -75 - nVerticalOffset - nNameplacerVerticalOffset, 200, 75 - nVerticalOffset - nNameplacerVerticalOffset)
 end
 
 function NPrimeNameplates:AllocateNameplate(p_unit)
