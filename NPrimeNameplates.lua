@@ -390,6 +390,8 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
   tNameplate.hasHealth = self:HasHealth(tUnit)
 
   if (p_target) then
+    Print("NPrimeNameplates:InitNameplate; tUnit:" .. tUnit:GetName() .. "; tNameplate.unit:GetName(): " .. tostring(tNameplate.unit:GetName()))
+
     local l_source = self.nameplates[tUnit:GetId()]
     tNameplate.ccActiveID = l_source and l_source.ccActiveID or -1
     tNameplate.ccDuration = l_source and l_source.ccDuration or 0
@@ -491,8 +493,11 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
 
   tNameplate.matrixFlags = self:GetMatrixFlags(tNameplate)
 
-  -- self:InitNameplateVerticalOffset(tNameplate)
   self:UpdateAnchoring(tNameplate)
+
+  if (p_target) then
+    self:InitNameplateVerticalOffset(tNameplate)
+  end
 
   tNameplate.textUnitName:SetData(tUnit)
   tNameplate.health:SetData(tUnit)
@@ -591,15 +596,17 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
       end
     end
 
-    -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation))
+    -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
 
     if (nCodeEnumFloaterLocation) then
       tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-    elseif (not tNameplate.form:GetUnit(tAnchorUnit)) then
+    else
       tNameplate.form:SetUnit(tAnchorUnit, 1)
     end
   elseif (bReposition) then
     tNameplate.form:SetUnit(tAnchorUnit, 0)
+  else
+    tNameplate.form:SetUnit(tAnchorUnit, 1)
   end
 end
 
@@ -611,7 +618,7 @@ function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate, nInputNameplac
 
   if (self.nameplacer or nNameplacerVerticalOffset) then
 
-    -- Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); tNameplate.unit:GetName(): " .. tNameplate.unit:GetName() .. "; nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
+    Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); tNameplate.unit:GetName(): " .. tostring(tNameplate.unit:GetName()) .. "; nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
 
     if (not nNameplacerVerticalOffset) then
       local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
@@ -673,6 +680,8 @@ function NPrimeNameplates:OnFrame()
   for flag, flagValue in _pairs(_flags) do
     _flags[flag] = flagValue == 1 and 2 or flagValue
   end
+
+  -- if (true) then return end
 
   local l_c = 0
   for id, nameplate in _pairs(self.nameplates) do
@@ -1055,6 +1064,8 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
         _targetNP.targetMark:SetBGColor(_targetNP.color)
       end
     else
+      Print("Updating _targetNP")
+
       _targetNP = self:InitNameplate(p_target, _targetNP, l_type, true)
 
       if (_matrix["ConfigLegacyTargeting"]) then
@@ -1120,11 +1131,10 @@ function NPrimeNameplates:OnNameplatePositionSettingChanged(strUnitName, tNamepl
     if (tNameplatePositionSetting["nVerticalOffset"]) then
       self:InitNameplateVerticalOffset(_targetNP, tNameplatePositionSetting["nVerticalOffset"])
     end
-
-    return
   end
+
   for _, tNameplate in _pairs(self.nameplates) do
-    -- Print("[nPrimeNameplates] nameplate.unit:GetName():" .. nameplate.unit:GetName())
+    -- Print("[nPrimeNameplates] nameplate.unit:GetName():" .. tNameplate.unit:GetName())
 
     if (tNameplate.unit:GetName() == strUnitName) then
 
@@ -1836,6 +1846,8 @@ function table.key_to_str(k)
 end
 
 function table.tostring(tbl)
+  if (not tbl) then return "nil" end
+
   local result, done = {}, {}
   for k, v in ipairs(tbl) do
     table.insert(result, table.val_to_str(v))
