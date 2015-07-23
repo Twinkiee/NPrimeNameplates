@@ -374,6 +374,33 @@ function NPrimeNameplates:OnUnitPvpFlagsChanged(p_unit)
   end
 end
 
+function NPrimeNameplates:InitAnchoring(tNameplate, nCodeEnumFloaterLocation)
+  local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
+  local bReposition = false
+  -- local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
+
+  if (self.nameplacer or nCodeEnumFloaterLocation) then
+    if (not nCodeEnumFloaterLocation) then
+      local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+
+      if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
+        nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
+        -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+      end
+    end
+
+    -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
+
+    if (nCodeEnumFloaterLocation) then
+      -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
+      tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+      return
+    end
+  end
+
+  tNameplate.form:SetUnit(tAnchorUnit, 1)
+end
+
 -------------------------------------------------------------------------------
 function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
   tNameplate = tNameplate or {}
@@ -463,6 +490,7 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
     tNameplate.casting:SetMax(100)
 
     self:InitNameplateVerticalOffset(tNameplate)
+    self:InitAnchoring(tNameplate)
 
     local l_fontH = l_font[l_fontSize].height
     local l_fontGuild = l_fontSize > 1 and l_fontSize - 1 or l_fontSize
@@ -586,7 +614,9 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
     end
   end
 
-  if (self.nameplacer and not bReposition) then
+  if (bReposition) then
+    tNameplate.form:SetUnit(tAnchorUnit, 0)
+  elseif (self.nameplacer) then
     if (not nCodeEnumFloaterLocation) then
       local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
 
@@ -599,15 +629,13 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
     -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
 
     if (nCodeEnumFloaterLocation) then
+      -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
       tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-    else
-      tNameplate.form:SetUnit(tAnchorUnit, 1)
+      return
     end
-  elseif (bReposition) then
-    tNameplate.form:SetUnit(tAnchorUnit, 0)
-  else
-    tNameplate.form:SetUnit(tAnchorUnit, 1)
   end
+  
+  tNameplate.form:SetUnit(tAnchorUnit, 1)
 end
 
 function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate, nInputNameplacerVerticalOffset)
