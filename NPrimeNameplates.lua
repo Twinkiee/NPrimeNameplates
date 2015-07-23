@@ -692,11 +692,11 @@ function NPrimeNameplates:OnFrame()
 
   _count = (_count + _cycleSize > l_c) and 0 or _count + _cycleSize
 
-  --[[
+
   if (_targetNP ~= nil) then
     self:UpdateNameplate(_targetNP, true)
   end
-  ]]
+
 
   if (_configUI ~= nil and _configUI:IsVisible()) then
     self:UpdateConfiguration()
