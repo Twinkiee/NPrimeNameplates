@@ -495,7 +495,7 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
 
   self:UpdateAnchoring(tNameplate)
 
-  if (p_target) then
+  if (not tNameplate.bIsVerticalOffsetUpdated) then
     self:InitNameplateVerticalOffset(tNameplate)
   end
 
@@ -637,6 +637,7 @@ function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate, nInputNameplac
   end
 
   self:SetNameplateVerticalOffset(tNameplate, nVerticalOffset, nNameplacerVerticalOffset)
+  tNameplate.bIsVerticalOffsetUpdated = true
 end
 
 function NPrimeNameplates:OnUnitCreated(p_unit)
@@ -655,6 +656,7 @@ end
 
 function NPrimeNameplates:OnFrame()
 
+  -- Player initialization. Should be done once after the addon loadin?
   if (_player == nil) then
     _player = GameLib.GetPlayerUnit()
     if (_player ~= nil) then
@@ -666,6 +668,7 @@ function NPrimeNameplates:OnFrame()
     end
   end
 
+  -- Addon configuration loading. Maybe can be used to reaload the configuration without reloading the whole UI.
   if (_configUI == nil and _next(_matrix) ~= nil) then
     self:InitConfiguration()
   end
@@ -1792,6 +1795,7 @@ function NPrimeNameplates:OnUnitDestroyed(p_unit)
     l_nameplate.form:SetUnit(nil)
     l_nameplate.textUnitName:SetData(nil)
     l_nameplate.health:SetData(nil)
+    l_nameplate.bIsVerticalOffsetUpdated = nil
     _tableInsert(self.pool, l_nameplate)
   else
     l_nameplate.form:Destroy()
