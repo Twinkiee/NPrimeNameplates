@@ -403,22 +403,22 @@ function NPrimeNameplates:InitAnchoring(tNameplate, nCodeEnumFloaterLocation)
 end
 
 -------------------------------------------------------------------------------
-function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
+function NPrimeNameplates:InitNameplate(tUnit, tNameplate, strUnitType, bIsTarget)
   tNameplate = tNameplate or {}
-  p_target = p_target or false
+  bIsTarget = bIsTarget or false
 
   tNameplate.unit = tUnit
   tNameplate.unitClassID = tUnit:IsACharacter() and tUnit:GetClassId() or tUnit:GetRank()
   tNameplate.disposition = tUnit:GetDispositionTo(_player)
   tNameplate.isPlayer = tUnit:IsACharacter()
 
-  tNameplate.type = p_type
+  tNameplate.type = strUnitType
   tNameplate.color = "FFFFFFFF"
-  tNameplate.targetNP = p_target
+  tNameplate.targetNP = bIsTarget
   tNameplate.hasHealth = self:HasHealth(tUnit)
 
-  if (p_target) then
-    Print("NPrimeNameplates:InitNameplate; tUnit:" .. tUnit:GetName() .. "; tNameplate.unit:GetName(): " .. tostring(tNameplate.unit:GetName()))
+  if (bIsTarget) then
+    Print("NPrimeNameplates: InitNameplate; tUnit:" .. tUnit:GetName() .. "; tNameplate.unit:GetName(): " .. tostring(tNameplate.unit:GetName()))
 
     local l_source = self.nameplates[tUnit:GetId()]
     tNameplate.ccActiveID = l_source and l_source.ccActiveID or -1
@@ -459,6 +459,8 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
   local l_font = _matrix["ConfigAlternativeFont"] and _fontSecondary or _fontPrimary
 
   if (tNameplate.form == nil) then
+    Print("NPrimeNameplates: InitNameplate; New form!")
+
     tNameplate.form = Apollo.LoadForm(self.xmlDoc, "Nameplate", "InWorldHudStratum", self)
 
     tNameplate.containerTop = tNameplate.form:FindChild("ContainerTop")
@@ -523,6 +525,8 @@ function NPrimeNameplates:InitNameplate(tUnit, tNameplate, p_type, p_target)
   tNameplate.matrixFlags = self:GetMatrixFlags(tNameplate)
 
   self:UpdateAnchoring(tNameplate)
+
+  Print("tNameplate.bIsVerticalOffsetUpdated: " .. tostring(tNameplate.bIsVerticalOffsetUpdated))
 
   if (not tNameplate.bIsVerticalOffsetUpdated) then
     self:InitNameplateVerticalOffset(tNameplate)
@@ -607,17 +611,9 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
   local bReposition = false
   local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
 
-  if (_matrix["ConfigDynamicVPos"] and not tNameplate.isPlayer) then
 
-    local tOverhead = tNameplate.unit:GetOverheadAnchor()
-    if (tOverhead ~= nil) then
-      bReposition = not tNameplate.occluded and tOverhead.y < 25
-    end
-  end
 
-  if (bReposition) then
-    tNameplate.form:SetUnit(tAnchorUnit, 0)
-  elseif (self.nameplacer) then
+  if (self.nameplacer) then
     if (not nCodeEnumFloaterLocation) then
       local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
 
@@ -635,15 +631,27 @@ function NPrimeNameplates:UpdateAnchoring(tNameplate, nCodeEnumFloaterLocation)
       return
     end
   end
-  
-  tNameplate.form:SetUnit(tAnchorUnit, 1)
+
+  if (_matrix["ConfigDynamicVPos"] and not tNameplate.isPlayer) then
+
+    local tOverhead = tNameplate.unit:GetOverheadAnchor()
+    if (tOverhead ~= nil) then
+      bReposition = not tNameplate.occluded and tOverhead.y < 25
+    end
+  end
+
+  if (bReposition) then
+    tNameplate.form:SetUnit(tAnchorUnit, 0)
+  else
+    tNameplate.form:SetUnit(tAnchorUnit, 1)
+  end
 end
 
 function NPrimeNameplates:InitNameplateVerticalOffset(tNameplate, nInputNameplacerVerticalOffset)
   local nVerticalOffset = _matrix["SliderVerticalOffset"]
   local nNameplacerVerticalOffset = nInputNameplacerVerticalOffset
 
-  -- Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); " .. tostring(nInputNameplacerVerticalOffset))
+  Print("NPrimeNameplates:InitNameplateVerticalOffset(tNameplate); " .. tostring(nInputNameplacerVerticalOffset))
 
   if (self.nameplacer or nNameplacerVerticalOffset) then
 
@@ -1069,22 +1077,22 @@ function NPrimeNameplates:UpdateConfigSlider(p_name, p_min, p_max, p_labelSuffix
 end
 
 
-function NPrimeNameplates:OnTargetUnitChanged(p_target)
+function NPrimeNameplates:OnTargetUnitChanged(tTarget)
 
   if (_player == nil) then return end
 
-  if (p_target ~= nil and self.nameplates[p_target:GetId()]) then
-    self.nameplates[p_target:GetId()].form:Show(false, true)
+  if (tTarget ~= nil and self.nameplates[tTarget:GetId()]) then
+    self.nameplates[tTarget:GetId()].form:Show(false, true)
   end
 
   -- Print(p_target:GetType())
 
-  if (p_target ~= nil) then
-    local l_type = self:GetUnitType(p_target)
+  if (tTarget ~= nil) then
+    local strUnitType = self:GetUnitType(tTarget)
     if (_targetNP == nil) then
 
       -- Print(">>> OnTargetUnitChanged; initializing new nameplate")
-      _targetNP = self:InitNameplate(p_target, nil, l_type, true)
+      _targetNP = self:InitNameplate(tTarget, nil, strUnitType, true)
 
       if (_matrix["ConfigLegacyTargeting"]) then
         self:UpdateLegacyTargetPixie()
@@ -1098,7 +1106,10 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
     else
       Print("Updating _targetNP")
 
-      _targetNP = self:InitNameplate(p_target, _targetNP, l_type, true)
+      -- Target Nameplacte is never reset because is not attached to any specific unit thus is never affected by OnUnitDestroyed event
+      _targetNP.bIsVerticalOffsetUpdated = false
+
+      _targetNP = self:InitNameplate(tTarget, _targetNP, strUnitType, true)
 
       if (_matrix["ConfigLegacyTargeting"]) then
         self:UpdateLegacyTargetPixie()
@@ -1108,7 +1119,7 @@ function NPrimeNameplates:OnTargetUnitChanged(p_target)
   end
 
   _flags.opacity = 1
-  _targetNP.form:Show(p_target ~= nil, true)
+  _targetNP.form:Show(tTarget ~= nil, true)
 end
 
 function NPrimeNameplates:UpdateLegacyTargetPixie()
@@ -1679,7 +1690,7 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
     return _player:GetTarget() == p_nameplate.unit
   end
 
-  -- return false if the nameplate is targeted by the player. Sounds wrong
+  -- return false if the nameplate is targeted by the player. Targeted nameplate is handled by _TargetNP
   if (_player:GetTarget() == p_nameplate.unit) then return false end
 
   if (_matrix["ConfigOcclusionCulling"] and
@@ -1725,13 +1736,13 @@ function NPrimeNameplates:GetUnitType(p_unit)
     			Rover:AddWatch("WatchName", p_unit, Rover.ADD_ONCE )
 	end
 	--]]
-	
+
   -- Some interactable objects are identified as NonPlayer
   -- This hack is done to prevent display the nameplate for this kind of units
-  if (l_type == "NonPlayer" and not p_unit:GetUnitRaceId())  then 
+  if (l_type == "NonPlayer" and not p_unit:GetUnitRaceId()) then
     -- local l_level = p_unit:GetLevel()
     -- if (not l_level) then
-      return "Hidden"
+    return "Hidden"
     -- end   
   end
 
@@ -1808,7 +1819,7 @@ end
 
 function NPrimeNameplates:SetNameplateVerticalOffset(tNameplate, nVerticalOffset, nNameplacerVerticalOffset)
 
-  -- Print("SetNameplateVerticalOffset; nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
+  Print("SetNameplateVerticalOffset; nNameplacerVerticalOffset: " .. tostring(nNameplacerVerticalOffset))
   tNameplate.form:SetAnchorOffsets(-200, -75 - nVerticalOffset - nNameplacerVerticalOffset, 200, 75 - nVerticalOffset - nNameplacerVerticalOffset)
 end
 
