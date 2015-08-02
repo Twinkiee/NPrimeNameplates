@@ -43,3 +43,5 @@ Temporary Items
 .apdisk
 *.project
 .buildpath
+.idea/
+nPrimeNameplates.iml
