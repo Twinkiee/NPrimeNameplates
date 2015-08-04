@@ -1106,7 +1106,7 @@ function NPrimeNameplates:OnTargetUnitChanged(tTarget)
     else
       Print("Updating _targetNP")
 
-      -- Target Nameplacte is never reset because is not attached to any specific unit thus is never affected by OnUnitDestroyed event
+      -- Target Nameplacte is never reset because it's not attached to any specific unit thus is never affected by OnUnitDestroyed event
       _targetNP.bIsVerticalOffsetUpdated = false
 
       _targetNP = self:InitNameplate(tTarget, _targetNP, strUnitType, true)
@@ -1693,8 +1693,7 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
   -- return false if the nameplate is targeted by the player. Targeted nameplate is handled by _TargetNP
   if (_player:GetTarget() == p_nameplate.unit) then return false end
 
-  if (_matrix["ConfigOcclusionCulling"] and
-      p_nameplate.occluded) then return false
+  if (_matrix["ConfigOcclusionCulling"] and p_nameplate.occluded) then return false
   end
 
   if (not GetFlag(p_nameplate.matrixFlags, F_NAMEPLATE)) then
@@ -1711,6 +1710,116 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
 
   return true
 end
+
+--[[
+-- See if a nameplate should be displayed
+function OptiPlates:HelperVerifyVisibilityOptions(tNameplate)
+  if tNameplate == nil then return false end
+  local unitPlayer = self.playerUnit
+  local unitOwner = tNameplate.unitOwner
+  local eDisposition = unitOwner:GetDispositionTo(unitPlayer)
+  local isImportant = tNameplate.bIsImportantNPC
+  local isVendor = tNameplate.bIsVendorNPC
+  if unitOwner == nil or not unitOwner:IsValid() then
+    return false
+  end
+
+
+  -- Always show target nameplate, regardless of what it is
+  if unitPlayer ~= nil then
+    local unitPlayerTarget = unitPlayer:GetTarget()
+    if unitPlayerTarget ~= nil and unitPlayerTarget == unitOwner then
+      return true
+    end
+  end
+  -- PET PLATES
+
+  if tNameplate.bGibbed then
+    return false
+  end
+
+  local bShowNameplate = false
+  tNameplate.eDisposition = eDisposition
+  if tNameplate.bIsPet then
+    if not unitOwner:GetUnitOwner() or unitOwner:GetUnitOwner() == nil then
+      if eDisposition == 2 then
+        bShowNameplate = self.setShowFriendlyPets
+      else
+        bShowNameplate = self.setShowHostilePets
+      end
+    elseif unitOwner:GetUnitOwner():IsThePlayer() == true then
+      bShowNameplate = self.setShowMyPets
+    else
+      if eDisposition == 2 then
+        bShowNameplate = self.setShowFriendlyPets
+      else
+        bShowNameplate = self.setShowHostilePets
+      end
+    end
+  elseif eDisposition == 2 and unitOwner:GetHealth() ~= nil then
+    bShowNameplate = true
+  elseif eDisposition == 0 then
+    bShowNameplate = true
+  elseif eDisposition == 1 and unitOwner:GetHealth() ~= nil then
+    bShowNameplate = true
+  end
+
+  if self.setIconQuest and tNameplate.bIsObjective then
+    bShowNameplate = true
+  end
+
+  if self.bShowMainGroupOnly and unitOwner:IsInYourGroup() then
+    bShowNameplate = true
+  end
+
+  if tNameplate.bIsWeapon then
+    bShowNameplate = true
+  end
+  if tNameplate.bIsHarvest then
+    bShowNameplate = true
+  end
+
+  local tActivation = unitOwner:GetActivationState()
+  if tActivation.FlightPathSettler ~= nil or tActivation.FlightPath ~= nil or tActivation.FlightPathNew then
+    bShowNameplate = true
+
+    --Vendors
+  elseif self.setF_Vendor and isVendor then
+    bShowNameplate = true
+  elseif self.setF_Important and isImportant then
+    bShowNameplate = true
+    --QuestGivers too
+  elseif tActivation.QuestReward ~= nil then
+    bShowNameplate = true
+  elseif tActivation.QuestNew ~= nil or tActivation.QuestNewMain ~= nil then
+    bShowNameplate = true
+  elseif tActivation.QuestReceiving ~= nil then
+    bShowNameplate = true
+  elseif tActivation.TalkTo ~= nil then
+    bShowNameplate = true
+  end
+
+  if bShowNameplate == true then
+    bShowNameplate = not (self.bPlayerInCombat and self.bHideInCombat)
+  end
+
+  if unitOwner:IsThePlayer() then
+    if not unitOwner:IsDead() then
+      bShowNameplate = true
+    else
+      bShowNameplate = false
+    end
+  end
+
+
+  --if unitPlayer ~= nil and unitPlayer:IsMounted() and unitPlayer:GetUnitMount() == unitOwner then
+  --	bShowNameplate = false
+  --end
+
+
+  return bShowNameplate
+end
+]]
 
 function NPrimeNameplates:GetUnitType(p_unit)
   if (p_unit == nil) then return "Hidden" end
