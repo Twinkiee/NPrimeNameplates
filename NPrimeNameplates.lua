@@ -1848,11 +1848,8 @@ function NPrimeNameplates:GetUnitType(p_unit)
 
   -- Some interactable objects are identified as NonPlayer
   -- This hack is done to prevent display the nameplate for this kind of units
-  if (l_type == "NonPlayer" and not p_unit:GetUnitRaceId()) then
-    -- local l_level = p_unit:GetLevel()
-    -- if (not l_level) then
-    return "Hidden"
-    -- end   
+  if (l_type == "NonPlayer" and not p_unit:GetUnitRaceId() and not p_unit:GetLevel()) then
+      return "Hidden"
   end
 
   local l_disposition = p_unit:GetDispositionTo(_player)
