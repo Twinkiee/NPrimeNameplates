@@ -419,6 +419,7 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   p_nameplate.pvpFlagged 			= p_unit:IsPvpFlagged()
   p_nameplate.hasActivationState	= self:HasActivationState(p_unit)
   p_nameplate.hasShield			= p_unit:GetShieldCapacityMax() ~= nil and p_unit:GetShieldCapacityMax() ~= 0
+  p_nameplate.bPet			= self:IsPet(p_unit)
 
   local l_zoomSliderW = _matrix["SliderBarScale"] / 2
   local l_zoomSliderH = _matrix["SliderBarScale"] / 10
@@ -544,6 +545,11 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   p_nameplate.form:ArrangeChildrenVert(1)
 
   return p_nameplate
+end
+
+function NPrimeNameplates:IsPet(unit)
+  local strUnitType = unit:GetType()
+  return strUnitType == "Pet" or strUnitType == "Scanner"
 end
 
 function NPrimeNameplates:OnUnitCreated(p_unit)
