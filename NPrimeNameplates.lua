@@ -359,14 +359,20 @@ function NPrimeNameplates:OnGroupUpdated(p_unit)
   end
 end
 
-function NPrimeNameplates:OnUnitPvpFlagsChanged(p_unit)
-  if (p_unit == nil) then return end
-  local l_nameplate = self.nameplates[p_unit:GetId()]
-  if (l_nameplate ~= nil) then
-    l_nameplate.pvpFlagged = p_unit:IsPvpFlagged()
+function NPrimeNameplates:OnUnitPvpFlagsChanged(unit)
+  if (not unit) then return end
+
+  local bPvpFlagged = self:IsPvpFlagged(unit)
+  local tNameplate = self.nameplates[unit:GetId()]
+
+  -- Update unit nameplate
+  if (tNameplate ~= nil) then
+    tNameplate.pvpFlagged = bPvpFlagged
   end
-  if (_targetNP ~= nil and _player:GetTarget() == p_unit) then
-    _targetNP.pvpFlagged = p_unit:IsPvpFlagged()
+
+  -- Update target nameplate as well
+  if (_targetNP and _player:GetTarget() == unit) then
+    _targetNP.pvpFlagged = bPvpFlagged
   end
 end
 
@@ -376,15 +382,16 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   p_nameplate = p_nameplate or {}
   p_target = p_target or false
 
-  p_nameplate.unit 				= p_unit
-  p_nameplate.unitClassID 		= p_unit:IsACharacter() and p_unit:GetClassId() or p_unit:GetRank()
-  p_nameplate.disposition			= p_unit:GetDispositionTo(_player)
+  p_nameplate.unit 				  = p_unit
+  p_nameplate.unitClassID 	= p_unit:IsACharacter() and p_unit:GetClassId() or p_unit:GetRank()
+  p_nameplate.bPet			    = self:IsPet(p_unit)
+  p_nameplate.eDisposition	= self:GetDispositionTo(p_unit, _player)
   p_nameplate.isPlayer			= p_unit:IsACharacter()
 
-  p_nameplate.type 				= p_type
-  p_nameplate.color 				= "FFFFFFFF"
-  p_nameplate.targetNP 			= p_target
-  p_nameplate.hasHealth 			= self:HasHealth(p_unit)
+  p_nameplate.type          = p_type
+  p_nameplate.color         = "FFFFFFFF"
+  p_nameplate.targetNP      = p_target
+  p_nameplate.hasHealth     = self:HasHealth(p_unit)
 
   if (p_target) then
     local l_source = self.nameplates[p_unit:GetId()]
@@ -419,7 +426,7 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   p_nameplate.pvpFlagged 			= p_unit:IsPvpFlagged()
   p_nameplate.hasActivationState	= self:HasActivationState(p_unit)
   p_nameplate.hasShield			= p_unit:GetShieldCapacityMax() ~= nil and p_unit:GetShieldCapacityMax() ~= 0
-  p_nameplate.bPet			= self:IsPet(p_unit)
+
 
   local l_zoomSliderW = _matrix["SliderBarScale"] / 2
   local l_zoomSliderH = _matrix["SliderBarScale"] / 10
@@ -550,6 +557,14 @@ end
 function NPrimeNameplates:IsPet(unit)
   local strUnitType = unit:GetType()
   return strUnitType == "Pet" or strUnitType == "Scanner"
+end
+
+function NPrimeNameplates:IsPvpFlagged(unit)
+  if (self:IsPet(unit)) then
+    unit = unit:GetUnitOwner()
+  end
+
+  return unit:IsPvpFlagged()
 end
 
 function NPrimeNameplates:OnUnitCreated(p_unit)
@@ -802,10 +817,10 @@ function NPrimeNameplates:UpdateNameplateColors(p_nameplate)
   local l_lowHP 		= GetFlag(p_nameplate.colorFlags, F_LOW_HP)
 
   local l_textColor = _typeColor[p_nameplate.type]
-  local l_barColor = _dispColor[p_nameplate.disposition]
+  local l_barColor = _dispColor[p_nameplate.eDisposition]
 
-  local l_isHostile = p_nameplate.disposition == Unit.CodeEnumDisposition.Hostile
-  local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
+  local l_isHostile = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Hostile
+  local l_isFriendly = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
 
   p_nameplate.color = l_textColor
 
@@ -840,8 +855,8 @@ end
 function NPrimeNameplates:GetColorFlags(p_nameplate)
   if (_player == nil) then return end
 
-  local l_flags = SetFlag(0, p_nameplate.disposition)
-  local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
+  local l_flags = SetFlag(0, p_nameplate.eDisposition)
+  local l_isFriendly = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
 
   if (p_nameplate.inGroup) 	then l_flags = SetFlag(l_flags, F_GROUP) end
   if (p_nameplate.pvpFlagged) then l_flags = SetFlag(l_flags, F_PVP) end
@@ -863,6 +878,14 @@ function NPrimeNameplates:GetColorFlags(p_nameplate)
   end
 
   return l_flags
+end
+
+function NPrimeNameplates:GetDispositionTo(unitSubject, unitObject)
+  if (self:IsPet(unitSubject) and unitSubject:GetUnitOwner()) then
+    unitSubject = unitSubject:GetUnitOwner()
+  end
+
+  return unitSubject:GetDispositionTo(unitObject)
 end
 
 function NPrimeNameplates:GetMatrixFlags(p_nameplate)
@@ -1508,7 +1531,7 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
   if (p_nameplate.unit:IsDead()) 					then return false end
   if (p_nameplate.outOfRange)						then return false end
 
-  local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
+  local l_isFriendly = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
   if (not p_nameplate.isPlayer and l_isFriendly) then
     return p_nameplate.hasActivationState or p_nameplate.isObjective
   end
