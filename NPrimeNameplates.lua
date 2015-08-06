@@ -366,7 +366,7 @@ function NPrimeNameplates:OnUnitPvpFlagsChanged(unit)
   local tNameplate = self.nameplates[unit:GetId()]
 
   -- Update unit nameplate
-  if (tNameplate ~= nil) then
+  if (not tNameplate) then
     tNameplate.pvpFlagged = bPvpFlagged
   end
 
@@ -516,10 +516,10 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   local l_shieldHeight = p_nameplate.health:GetHeight() * l_shieldHeightMod
   local l_shield = p_nameplate.hasShield and l_zoomSliderH * 1.3 or l_zoomSliderH
 
+  self:UpdateMainContainerHeight (p_nameplate)
+  -- local l_healthTextHeight = _matrix["ConfigHealthText"] and (l_font[l_fontSize].height * 0.75) or 0
 
-  local l_healthTextHeight = _matrix["ConfigHealthText"] and (l_font[l_fontSize].height * 0.75) or 0
-
-  p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shield + l_healthTextHeight)
+  -- p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shield + l_healthTextHeight)
 
   p_nameplate.shield:Show(p_nameplate.hasShield)
   p_nameplate.health:SetAnchorOffsets(-l_zoomSliderW, 0, l_zoomSliderW, l_zoomSliderH * l_heightMod)
@@ -560,7 +560,7 @@ function NPrimeNameplates:IsPet(unit)
 end
 
 function NPrimeNameplates:IsPvpFlagged(unit)
-  if (self:IsPet(unit)) then
+  if (self:IsPet(unit) and unit:GetUnitOwner()) then
     unit = unit:GetUnitOwner()
   end
 
