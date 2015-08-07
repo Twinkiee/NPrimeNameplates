@@ -355,7 +355,7 @@ function NPrimeNameplates:OnGroupUpdated(p_unit)
   local l_nameplate = self.nameplates[p_unit:GetId()]
   if (l_nameplate ~= nil) then
     l_nameplate.inGroup = p_unit:IsInYourGroup()
-    l_nameplate.type = l_nameplate.inGroup and "Group" or _dispStr[l_nameplate.disposition]
+    l_nameplate.type = l_nameplate.inGroup and "Group" or _dispStr[l_nameplate.eDisposition]
   end
 end
 
@@ -647,8 +647,8 @@ function NPrimeNameplates:UpdateNameplate(p_nameplate, p_cyclicUpdate)
 
   if (p_nameplate.onScreen) then
     local l_disposition = self:GetDispositionTo(p_nameplate.unit, _player)
-    if (p_nameplate.disposition ~= l_disposition) then
-      p_nameplate.disposition = l_disposition
+    if (p_nameplate.eDisposition ~= l_disposition) then
+      p_nameplate.eDisposition = l_disposition
       p_nameplate.type = _dispStr[l_disposition]
     end
   end
@@ -729,7 +729,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
   local l_fullHealth        = l_health == l_healthMax;
   local l_shieldFull        = false;
   local l_hiddenBecauseFull = false;
-  local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
+  local l_isFriendly = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
 
   if (p_nameplate.hasShield) then
     l_shieldFull = l_shield == l_shieldMax;
