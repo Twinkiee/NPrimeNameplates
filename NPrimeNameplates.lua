@@ -366,7 +366,7 @@ function NPrimeNameplates:OnUnitPvpFlagsChanged(unit)
   local tNameplate = self.nameplates[unit:GetId()]
 
   -- Update unit nameplate
-  if (not tNameplate) then
+  if (tNameplate) then
     tNameplate.pvpFlagged = bPvpFlagged
   end
 
@@ -729,7 +729,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
   local l_fullHealth        = l_health == l_healthMax;
   local l_shieldFull        = false;
   local l_hiddenBecauseFull = false;
-  local l_isFriendly = p_nameplate.disposition == Unit.CodeEnumDisposition.Friendly
+  local l_isFriendly = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
 
   if (p_nameplate.hasShield) then
     l_shieldFull = l_shield == l_shieldMax;
