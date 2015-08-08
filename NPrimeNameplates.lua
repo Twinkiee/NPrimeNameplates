@@ -382,7 +382,7 @@ function NPrimeNameplates:OnUnitPvpFlagsChanged(unit)
 end
 
 
-<<<<<<< HEAD
+
 function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   p_nameplate = p_nameplate or {}
   p_target = p_target or false
@@ -403,58 +403,7 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
     p_nameplate.ccActiveID 		= l_source and l_source.ccActiveID or -1
     p_nameplate.ccDuration 		= l_source and l_source.ccDuration or 0
     p_nameplate.ccDurationMax 	= l_source and l_source.ccDurationMax or 0
-=======
-function NPrimeNameplates:InitAnchoring(tNameplate, nCodeEnumFloaterLocation)
-  local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
-  local bReposition = false
-  -- local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
 
-  if (self.nameplacer or nCodeEnumFloaterLocation) then
-    if (not nCodeEnumFloaterLocation) then
-      local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
-
-      if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
-        nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
-        -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-      end
-    end
-
-    -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
-
-    if (nCodeEnumFloaterLocation) then
-      -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
-      tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-      return
-    end
-  end
-
-  tNameplate.form:SetUnit(tAnchorUnit, 1)
-end
-
--------------------------------------------------------------------------------
-function NPrimeNameplates:InitNameplate(tUnit, tNameplate, strUnitType, bIsTarget)
-  tNameplate = tNameplate or {}
-  bIsTarget = bIsTarget or false
-
-  tNameplate.unit = tUnit
-  tNameplate.unitClassID = tUnit:IsACharacter() and tUnit:GetClassId() or tUnit:GetRank()
-  tNameplate.bPet			    = self:IsPet(tUnit)
-  tNameplate.eDisposition = tUnit:GetDispositionTo(_player)
-  tNameplate.isPlayer = tUnit:IsACharacter()
-
-  tNameplate.type = strUnitType
-  tNameplate.color = "FFFFFFFF"
-  tNameplate.targetNP = bIsTarget
-  tNameplate.hasHealth = self:HasHealth(tUnit)
-
-  if (bIsTarget) then
-    Print("NPrimeNameplates: InitNameplate; tUnit:" .. tUnit:GetName() .. "; tNameplate.unit:GetName(): " .. tostring(tNameplate.unit:GetName()))
-
-    local l_source = self.nameplates[tUnit:GetId()]
-    tNameplate.ccActiveID = l_source and l_source.ccActiveID or -1
-    tNameplate.ccDuration = l_source and l_source.ccDuration or 0
-    tNameplate.ccDurationMax = l_source and l_source.ccDurationMax or 0
->>>>>>> b5324fd861dea67e0f0e9b6d78bb06a83dec6450
   else
     tNameplate.ccActiveID = -1
     tNameplate.ccDuration = 0
@@ -1027,15 +976,10 @@ end
 
 function NPrimeNameplates:UpdateNameplateColors(p_nameplate)
   local bPvpFlagged = _player:IsPvpFlagged() and GetFlag(p_nameplate.colorFlags, F_PVP)
-<<<<<<< HEAD
   local l_aggroLost 	= GetFlag(p_nameplate.colorFlags, F_AGGRO)
   local l_cleanse 	= GetFlag(p_nameplate.colorFlags, F_CLEANSE)
   local l_lowHP 		= GetFlag(p_nameplate.colorFlags, F_LOW_HP)
-=======
-  local l_aggroLost = GetFlag(p_nameplate.colorFlags, F_AGGRO)
-  local l_cleanse = GetFlag(p_nameplate.colorFlags, F_CLEANSE)
-  local l_lowHP = GetFlag(p_nameplate.colorFlags, F_LOW_HP)
->>>>>>> b5324fd861dea67e0f0e9b6d78bb06a83dec6450
+
 
   local l_textColor = _typeColor[p_nameplate.type]
   local l_barColor = _dispColor[p_nameplate.eDisposition]
@@ -1815,6 +1759,35 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
 
   return true
 end
+
+  function NPrimeNameplates:InitAnchoring(tNameplate, nCodeEnumFloaterLocation)
+    local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
+    local bReposition = false
+    -- local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
+
+    if (self.nameplacer or nCodeEnumFloaterLocation) then
+      if (not nCodeEnumFloaterLocation) then
+        local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+
+        if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
+          nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
+          -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+        end
+      end
+
+      -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
+
+      if (nCodeEnumFloaterLocation) then
+        -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
+        tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+        return
+      end
+    end
+
+    tNameplate.form:SetUnit(tAnchorUnit, 1)
+  end
+
+
 
 --[[
 -- See if a nameplate should be displayed
