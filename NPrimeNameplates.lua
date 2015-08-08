@@ -383,26 +383,26 @@ end
 
 
 
-function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
-  p_nameplate = p_nameplate or {}
+function NPrimeNameplates:InitNameplate(unitNameplateOwner, tNameplate, p_type, p_target)
+  tNameplate = tNameplate or {}
   p_target = p_target or false
 
-  p_nameplate.unit 				= p_unit
-  p_nameplate.unitClassID 		= p_unit:IsACharacter() and p_unit:GetClassId() or p_unit:GetRank()
-  p_nameplate.bPet			    = self:IsPet(p_unit)
-  p_nameplate.eDisposition	    = self:GetDispositionTo(p_unit, _player)
-  p_nameplate.isPlayer			= p_unit:IsACharacter()
+  tNameplate.unit = unitNameplateOwner
+  tNameplate.unitClassID = unitNameplateOwner:IsACharacter() and unitNameplateOwner:GetClassId() or unitNameplateOwner:GetRank()
+  tNameplate.bPet = self:IsPet(unitNameplateOwner)
+  tNameplate.eDisposition = self:GetDispositionTo(unitNameplateOwner, _player)
+  tNameplate.isPlayer = unitNameplateOwner:IsACharacter()
 
-  p_nameplate.type 				= p_type
-  p_nameplate.color 				= "FFFFFFFF"
-  p_nameplate.targetNP 			= p_target
-  p_nameplate.hasHealth 			= self:HasHealth(p_unit)
+  tNameplate.type = p_type
+  tNameplate.color = "FFFFFFFF"
+  tNameplate.targetNP = p_target
+  tNameplate.hasHealth = self:HasHealth(unitNameplateOwner)
 
   if (p_target) then
-    local l_source = self.nameplates[p_unit:GetId()]
-    p_nameplate.ccActiveID 		= l_source and l_source.ccActiveID or -1
-    p_nameplate.ccDuration 		= l_source and l_source.ccDuration or 0
-    p_nameplate.ccDurationMax 	= l_source and l_source.ccDurationMax or 0
+    local l_source = self.nameplates[unitNameplateOwner:GetId()]
+    tNameplate.ccActiveID = l_source and l_source.ccActiveID or -1
+    tNameplate.ccDuration = l_source and l_source.ccDuration or 0
+    tNameplate.ccDurationMax = l_source and l_source.ccDurationMax or 0
 
   else
     tNameplate.ccActiveID = -1
@@ -424,14 +424,14 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   tNameplate.rearrange = false
 
   tNameplate.outOfRange = true
-  tNameplate.occluded = tUnit:IsOccluded()
-  tNameplate.inCombat = tUnit:IsInCombat()
-  tNameplate.inGroup = tUnit:IsInYourGroup()
-  tNameplate.isMounted = tUnit:IsMounted()
+  tNameplate.occluded = unitNameplateOwner:IsOccluded()
+  tNameplate.inCombat = unitNameplateOwner:IsInCombat()
+  tNameplate.inGroup = unitNameplateOwner:IsInYourGroup()
+  tNameplate.isMounted = unitNameplateOwner:IsMounted()
   tNameplate.isObjective = false
-  tNameplate.pvpFlagged = tUnit:IsPvpFlagged()
-  tNameplate.hasActivationState = self:HasActivationState(tUnit)
-  tNameplate.hasShield = tUnit:GetShieldCapacityMax() ~= nil and tUnit:GetShieldCapacityMax() ~= 0
+  tNameplate.pvpFlagged = unitNameplateOwner:IsPvpFlagged()
+  tNameplate.hasActivationState = self:HasActivationState(unitNameplateOwner)
+  tNameplate.hasShield = unitNameplateOwner:GetShieldCapacityMax() ~= nil and unitNameplateOwner:GetShieldCapacityMax() ~= 0
 
 
   local l_zoomSliderW = _matrix["SliderBarScale"] / 2
@@ -513,8 +513,8 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
     self:InitNameplateVerticalOffset(tNameplate)
   end
 
-  tNameplate.textUnitName:SetData(tUnit)
-  tNameplate.health:SetData(tUnit)
+  tNameplate.textUnitName:SetData(unitNameplateOwner)
+  tNameplate.health:SetData(unitNameplateOwner)
   tNameplate.onScreen = tNameplate.form:IsOnScreen()
 
   self:UpdateOpacity(tNameplate)
@@ -531,16 +531,7 @@ function NPrimeNameplates:InitNameplate(p_unit, p_nameplate, p_type, p_target)
   local l_shieldHeight = tNameplate.health:GetHeight() * l_shieldHeightMod
   local l_shield = tNameplate.hasShield and l_zoomSliderH * 1.3 or l_zoomSliderH
 
-  self:UpdateMainContainerHeight (p_nameplate)
-  -- local l_healthTextHeight = _matrix["ConfigHealthText"] and (l_font[l_fontSize].height * 0.75) or 0
-
-<<<<<<< HEAD
-  -- p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shield + l_healthTextHeight)
-=======
-  local l_healthTextHeight = _matrix["ConfigHealthText"] and (l_font[l_fontSize].height * 0.75) or 0
-
-  tNameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shield + l_healthTextHeight)
->>>>>>> b5324fd861dea67e0f0e9b6d78bb06a83dec6450
+  self:UpdateMainContainerHeight(tNameplate)
 
   tNameplate.shield:Show(tNameplate.hasShield)
   tNameplate.health:SetAnchorOffsets(-l_zoomSliderW, 0, l_zoomSliderW, l_zoomSliderH * l_heightMod)
@@ -690,8 +681,8 @@ function NPrimeNameplates:IsPvpFlagged(unit)
   return unit:IsPvpFlagged()
 end
 
-function NPrimeNameplates:OnUnitCreated(p_unit)
-  _tableInsert(self.buffer, p_unit)
+function NPrimeNameplates:OnUnitCreated(unitNameplateOwner)
+  _tableInsert(self.buffer, unitNameplateOwner)
 end
 
 function NPrimeNameplates:UpdateBuffer()
@@ -960,12 +951,12 @@ function NPrimeNameplates:UpdateTopContainer(p_nameplate)
   end
 end
 
-function NPrimeNameplates:UpdateMainContainerHeight (tNameplate)
+function NPrimeNameplates:UpdateMainContainerHeight(tNameplate)
   local l_healthTextEnabled = GetFlag(tNameplate.matrixFlags, F_HEALTH_TEXT)
 
   -- Print("l_healthTextEnabled: " .. tostring(l_healthTextEnabled))
 
-  if(l_healthTextEnabled) then
+  if (l_healthTextEnabled) then
     self:UpdateMainContainerHeightWithHealthText(tNameplate)
   else
     self:UpdateMainContainerHeightWithoutHealthText(tNameplate)
@@ -976,9 +967,9 @@ end
 
 function NPrimeNameplates:UpdateNameplateColors(p_nameplate)
   local bPvpFlagged = _player:IsPvpFlagged() and GetFlag(p_nameplate.colorFlags, F_PVP)
-  local l_aggroLost 	= GetFlag(p_nameplate.colorFlags, F_AGGRO)
-  local l_cleanse 	= GetFlag(p_nameplate.colorFlags, F_CLEANSE)
-  local l_lowHP 		= GetFlag(p_nameplate.colorFlags, F_LOW_HP)
+  local l_aggroLost = GetFlag(p_nameplate.colorFlags, F_AGGRO)
+  local l_cleanse = GetFlag(p_nameplate.colorFlags, F_CLEANSE)
+  local l_lowHP = GetFlag(p_nameplate.colorFlags, F_LOW_HP)
 
 
   local l_textColor = _typeColor[p_nameplate.type]
@@ -1125,16 +1116,10 @@ function NPrimeNameplates:OnTargetUnitChanged(unitTarget)
   -- Print(p_target:GetType())
 
   if (unitTarget ~= nil) then
-<<<<<<< HEAD
-    local l_type = self:GetUnitType(unitTarget)
-    if (_targetNP == nil) then
-      _targetNP = self:InitNameplate(unitTarget, nil, l_type, true)
-=======
     local strUnitType = self:GetUnitType(unitTarget)
     if (_targetNP == nil) then
       -- Print(">>> OnTargetUnitChanged; initializing new nameplate")
       _targetNP = self:InitNameplate(unitTarget, nil, strUnitType, true)
->>>>>>> b5324fd861dea67e0f0e9b6d78bb06a83dec6450
 
       if (_matrix["ConfigLegacyTargeting"]) then
         self:UpdateLegacyTargetPixie()
@@ -1146,16 +1131,13 @@ function NPrimeNameplates:OnTargetUnitChanged(unitTarget)
         _targetNP.targetMark:SetBGColor(_targetNP.color)
       end
     else
-<<<<<<< HEAD
-      _targetNP = self:InitNameplate(unitTarget, _targetNP, l_type, true)
-=======
+
       Print("Updating _targetNP")
 
       -- Target Nameplacte is never reset because it's not attached to any specific unit thus is never affected by OnUnitDestroyed event
       _targetNP.bIsVerticalOffsetUpdated = false
 
       _targetNP = self:InitNameplate(unitTarget, _targetNP, strUnitType, true)
->>>>>>> b5324fd861dea67e0f0e9b6d78bb06a83dec6450
 
       if (_matrix["ConfigLegacyTargeting"]) then
         self:UpdateLegacyTargetPixie()
@@ -1164,7 +1146,7 @@ function NPrimeNameplates:OnTargetUnitChanged(unitTarget)
     end
 
     -- We need to call this otherwise hidden health text comfiguration may not update correctly
-    self:UpdateMainContainerHeight (_targetNP)
+    self:UpdateMainContainerHeight(_targetNP)
   end
 
   _flags.opacity = 1
@@ -1191,10 +1173,10 @@ function NPrimeNameplates:UpdateLegacyTargetPixie()
   _targetPixie.loc.nOffsets[4] = l_height
 end
 
-function NPrimeNameplates:OnTextBubble(p_unit, p_text)
+function NPrimeNameplates:OnTextBubble(unitNameplateOwner, p_text)
   if (_player == nil) then return end
 
-  local l_nameplate = self.nameplates[p_unit:GetId()]
+  local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
   if (l_nameplate ~= nil) then
     self:ProcessTextBubble(l_nameplate, p_text)
   end
@@ -1242,44 +1224,44 @@ function NPrimeNameplates:OnNameplatePositionSettingChanged(strUnitName, tNamepl
   end
 end
 
-function NPrimeNameplates:OnUnitMainTextChanged(p_unit)
-  if (p_unit == nil) then return end
-  local l_nameplate = self.nameplates[p_unit:GetId()]
+function NPrimeNameplates:OnUnitMainTextChanged(unitNameplateOwner)
+  if (unitNameplateOwner == nil) then return end
+  local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
   if (l_nameplate ~= nil) then
     self:UpdateTextNameGuild(l_nameplate)
     self:UpdateTopContainer(l_nameplate)
   end
-  if (_targetNP ~= nil and _player:GetTarget() == p_unit) then
+  if (_targetNP ~= nil and _player:GetTarget() == unitNameplateOwner) then
     self:UpdateTextNameGuild(_targetNP)
     self:UpdateTopContainer(_targetNP)
   end
 end
 
-function NPrimeNameplates:OnUnitLevelChanged(p_unit)
-  if (p_unit == nil) then return end
-  local l_nameplate = self.nameplates[p_unit:GetId()]
+function NPrimeNameplates:OnUnitLevelChanged(unitNameplateOwner)
+  if (unitNameplateOwner == nil) then return end
+  local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
   if (l_nameplate ~= nil) then
     self:UpdateTextLevel(l_nameplate)
     self:UpdateTopContainer(l_nameplate)
   end
-  if (_targetNP ~= nil and _player:GetTarget() == p_unit) then
+  if (_targetNP ~= nil and _player:GetTarget() == unitNameplateOwner) then
     self:UpdateTextLevel(_targetNP)
     self:UpdateTopContainer(_targetNP)
   end
 end
 
-function NPrimeNameplates:OnUnitActivationTypeChanged(p_unit)
+function NPrimeNameplates:OnUnitActivationTypeChanged(unitNameplateOwner)
   if (_player == nil) then return end
 
-  local l_nameplate = self.nameplates[p_unit:GetId()]
-  local l_hasActivationState = self:HasActivationState(p_unit)
+  local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
+  local l_hasActivationState = self:HasActivationState(unitNameplateOwner)
 
   if (l_nameplate ~= nil) then
     l_nameplate.hasActivationState = l_hasActivationState
   elseif (l_hasActivationState) then
-    self:AllocateNameplate(p_unit)
+    self:AllocateNameplate(unitNameplateOwner)
   end
-  if (_targetNP ~= nil and _player:GetTarget() == p_unit) then
+  if (_targetNP ~= nil and _player:GetTarget() == unitNameplateOwner) then
     _targetNP.hasActivationState = l_hasActivationState
   end
 end
@@ -1430,10 +1412,10 @@ function NPrimeNameplates:GetMatrixTooltip(p_value)
   return "?"
 end
 
-function NPrimeNameplates:DistanceToUnit(p_unit)
-  if (p_unit == nil) then return 0 end
+function NPrimeNameplates:DistanceToUnit(unitNameplateOwner)
+  if (unitNameplateOwner == nil) then return 0 end
 
-  local l_pos = p_unit:GetPosition()
+  local l_pos = unitNameplateOwner:GetPosition()
   if (l_pos == nil) then return 0 end
   if (l_pos.x == 0) then return 0 end
 
@@ -1505,10 +1487,10 @@ function NPrimeNameplates:InitClassIcon(p_nameplate)
   p_nameplate.iconUnit:SetSprite(l_icon ~= nil and l_icon or "")
 end
 
-function NPrimeNameplates:OnCCStateApplied(p_ccID, p_unit)
+function NPrimeNameplates:OnCCStateApplied(p_ccID, unitNameplateOwner)
   if (_ccWhiteList[p_ccID] == nil) then return end
 
-  local l_nameplate = self.nameplates[p_unit:GetId()]
+  local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
 
   if (l_nameplate ~= nil) then
     if (GetFlag(l_nameplate.matrixFlags, F_CC_BAR)) then
@@ -1516,7 +1498,7 @@ function NPrimeNameplates:OnCCStateApplied(p_ccID, p_unit)
     end
   end
 
-  if (_targetNP ~= nil and _targetNP.unit == p_unit) then
+  if (_targetNP ~= nil and _targetNP.unit == unitNameplateOwner) then
     if (GetFlag(_targetNP.matrixFlags, F_CC_BAR)) then
       self:RegisterCC(_targetNP, p_ccID)
     end
@@ -1703,25 +1685,25 @@ function NPrimeNameplates:AddIcon(p_nameplate, p_sprite, p_iconN, p_width)
   p_nameplate.containerIcons:AddPixie(_iconPixie)
 end
 
-function NPrimeNameplates:HasHealth(p_unit)
+function NPrimeNameplates:HasHealth(unitNameplateOwner)
 
-  if (p_unit == nil)
+  if (unitNameplateOwner == nil)
   then return false
   end
 
-  if (p_unit:GetMouseOverType() == "Simple" or p_unit:GetMouseOverType() == "SimpleCollidable")
+  if (unitNameplateOwner:GetMouseOverType() == "Simple" or unitNameplateOwner:GetMouseOverType() == "SimpleCollidable")
   then return false
   end
 
-  if (p_unit:IsDead())
+  if (unitNameplateOwner:IsDead())
   then return false
   end
 
-  if (p_unit:GetMaxHealth() == nil)
+  if (unitNameplateOwner:GetMaxHealth() == nil)
   then return false
   end
 
-  if (p_unit:GetMaxHealth() == 0)
+  if (unitNameplateOwner:GetMaxHealth() == 0)
   then return false
   end
 
@@ -1760,32 +1742,32 @@ function NPrimeNameplates:GetNameplateVisibility(p_nameplate)
   return true
 end
 
-  function NPrimeNameplates:InitAnchoring(tNameplate, nCodeEnumFloaterLocation)
-    local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
-    local bReposition = false
-    -- local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
+function NPrimeNameplates:InitAnchoring(tNameplate, nCodeEnumFloaterLocation)
+  local tAnchorUnit = tNameplate.unit:IsMounted() and tNameplate.unit:GetUnitMount() or tNameplate.unit
+  local bReposition = false
+  -- local nCodeEnumFloaterLocation = nCodeEnumFloaterLocation
 
-    if (self.nameplacer or nCodeEnumFloaterLocation) then
-      if (not nCodeEnumFloaterLocation) then
-        local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
+  if (self.nameplacer or nCodeEnumFloaterLocation) then
+    if (not nCodeEnumFloaterLocation) then
+      local tNameplatePositionSetting = self.nameplacer:GetUnitNameplatePositionSetting(tNameplate.unit:GetName())
 
-        if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
-          nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
-          -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-        end
-      end
-
-      -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
-
-      if (nCodeEnumFloaterLocation) then
-        -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
-        tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
-        return
+      if (tNameplatePositionSetting and tNameplatePositionSetting["nAnchorId"]) then
+        nCodeEnumFloaterLocation = tNameplatePositionSetting["nAnchorId"]
+        -- tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
       end
     end
 
-    tNameplate.form:SetUnit(tAnchorUnit, 1)
+    -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
+
+    if (nCodeEnumFloaterLocation) then
+      -- Print("\\\\\\\\\\\\\\\\\ unit name: " .. tAnchorUnit:GetName() .. "; nCodeEnumFloaterLocation: " .. tostring(nCodeEnumFloaterLocation) .. "; tNameplate.form:GetUnit(tAnchorUnit): " .. tostring(tNameplate.form:GetUnit(tAnchorUnit)))
+      tNameplate.form:SetUnit(tAnchorUnit, nCodeEnumFloaterLocation)
+      return
+    end
   end
+
+  tNameplate.form:SetUnit(tAnchorUnit, 1)
+end
 
 
 
@@ -1899,18 +1881,18 @@ function OptiPlates:HelperVerifyVisibilityOptions(tNameplate)
 end
 ]]
 
-function NPrimeNameplates:GetUnitType(p_unit)
-  if (p_unit == nil) then return "Hidden" end
-  if (not p_unit:IsValid()) then return "Hidden" end
+function NPrimeNameplates:GetUnitType(unitNameplateOwner)
+  if (unitNameplateOwner == nil) then return "Hidden" end
+  if (not unitNameplateOwner:IsValid()) then return "Hidden" end
 
-  if (p_unit:CanBeHarvestedBy(_player)) then
+  if (unitNameplateOwner:CanBeHarvestedBy(_player)) then
     return _matrix["ConfigShowHarvest"] and "Other" or "Hidden"
   end
 
-  if (p_unit:IsThePlayer()) then return "Self" end
-  if (p_unit:IsInYourGroup()) then return "Group" end
+  if (unitNameplateOwner:IsThePlayer()) then return "Self" end
+  if (unitNameplateOwner:IsInYourGroup()) then return "Group" end
 
-  local l_type = p_unit:GetType()
+  local l_type = unitNameplateOwner:GetType()
   if (l_type == "BindPoint") then return "Other" end
   if (l_type == "PinataLoot") then return "Other" end
   if (l_type == "Ghost") then return "Hidden" end
@@ -1918,25 +1900,25 @@ function NPrimeNameplates:GetUnitType(p_unit)
   -- if (l_type == "Collectible")  then return "Hidden" end
 
   --[[ 
-	if (p_unit:GetName() == "Derelict Silo Egg") then 
+	if (unitNameplateOwner:GetName() == "Derelict Silo Egg") then
 		     local Rover = Apollo.GetAddon("Rover")
-    			Rover:AddWatch("WatchName", p_unit, Rover.ADD_ONCE )
+    			Rover:AddWatch("WatchName", unitNameplateOwner, Rover.ADD_ONCE )
 	end
 	--]]
 
   -- Some interactable objects are identified as NonPlayer
   -- This hack is done to prevent display the nameplate for this kind of units
-  if (l_type == "NonPlayer" and not p_unit:GetUnitRaceId() and not p_unit:GetLevel()) then
-      return "Hidden"
+  if (l_type == "NonPlayer" and not unitNameplateOwner:GetUnitRaceId() and not unitNameplateOwner:GetLevel()) then
+    return "Hidden"
   end
 
-  local l_disposition = p_unit:GetDispositionTo(_player)
+  local l_disposition = unitNameplateOwner:GetDispositionTo(_player)
 
-  if (_exceptions[p_unit:GetName()] ~= nil) then
-    return _exceptions[p_unit:GetName()] and _dispStr[l_disposition] or "Hidden"
+  if (_exceptions[unitNameplateOwner:GetName()] ~= nil) then
+    return _exceptions[unitNameplateOwner:GetName()] and _dispStr[l_disposition] or "Hidden"
   end
 
-  local l_rewardInfo = p_unit:GetRewardInfo()
+  local l_rewardInfo = unitNameplateOwner:GetRewardInfo()
 
   if (l_rewardInfo ~= nil and _next(l_rewardInfo) ~= nil) then
     for i = 1, #l_rewardInfo do
@@ -1946,13 +1928,13 @@ function NPrimeNameplates:GetUnitType(p_unit)
     end
   end
 
-  if (p_unit:IsACharacter() or self:HasActivationState(p_unit)) then
+  if (unitNameplateOwner:IsACharacter() or self:HasActivationState(unitNameplateOwner)) then
     return _dispStr[l_disposition]
   end
 
-  if (p_unit:GetHealth() == nil) then return "Hidden" end
+  if (unitNameplateOwner:GetHealth() == nil) then return "Hidden" end
 
-  local l_archetype = p_unit:GetArchetype()
+  local l_archetype = unitNameplateOwner:GetArchetype()
 
   if (l_archetype ~= nil) then
     return _dispStr[l_disposition]
@@ -1972,16 +1954,13 @@ function NPrimeNameplates:SetCombatState(p_nameplate, p_inCombat)
     self:UpdateTopContainer(p_nameplate)
   end
 
-  self:UpdateMainContainerHeight (p_nameplate)
+  self:UpdateMainContainerHeight(p_nameplate)
 
-<<<<<<< HEAD
-=======
-  p_nameplate.rearrange = true
->>>>>>> b5324fd861dea67e0f0e9b6d78bb06a83dec6450
+  -- p_nameplate.rearrange = true
 end
 
-function NPrimeNameplates:HasActivationState(p_unit)
-  local l_activationStates = p_unit:GetActivationState()
+function NPrimeNameplates:HasActivationState(unitNameplateOwner)
+  local l_activationStates = unitNameplateOwner:GetActivationState()
   if (_next(l_activationStates) == nil) then return false end
   local l_show = false
   for state, a in _pairs(l_activationStates) do
@@ -2002,18 +1981,18 @@ function NPrimeNameplates:SetNameplateVerticalOffset(tNameplate, nVerticalOffset
   tNameplate.form:SetAnchorOffsets(-200, -75 - nVerticalOffset - nNameplacerVerticalOffset, 200, 75 - nVerticalOffset - nNameplacerVerticalOffset)
 end
 
-function NPrimeNameplates:AllocateNameplate(p_unit)
-  if (self.nameplates[p_unit:GetId()] == nil) then
-    local l_type = self:GetUnitType(p_unit)
+function NPrimeNameplates:AllocateNameplate(unitNameplateOwner)
+  if (self.nameplates[unitNameplateOwner:GetId()] == nil) then
+    local l_type = self:GetUnitType(unitNameplateOwner)
     if (l_type ~= "Hidden") then
-      local l_nameplate = self:InitNameplate(p_unit, _tableRemove(self.pool) or nil, l_type)
-      self.nameplates[p_unit:GetId()] = l_nameplate
+      local l_nameplate = self:InitNameplate(unitNameplateOwner, _tableRemove(self.pool) or nil, l_type)
+      self.nameplates[unitNameplateOwner:GetId()] = l_nameplate
     end
   end
 end
 
-function NPrimeNameplates:OnUnitDestroyed(p_unit)
-  local l_nameplate = self.nameplates[p_unit:GetId()]
+function NPrimeNameplates:OnUnitDestroyed(unitNameplateOwner)
+  local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
   if (l_nameplate == nil) then return end
 
   if (#self.pool < 50) then
@@ -2026,7 +2005,7 @@ function NPrimeNameplates:OnUnitDestroyed(p_unit)
   else
     l_nameplate.form:Destroy()
   end
-  self.nameplates[p_unit:GetId()] = nil
+  self.nameplates[unitNameplateOwner:GetId()] = nil
 end
 
 function NPrimeNameplates:UpdateMainContainerHeightWithHealthText(p_nameplate)
