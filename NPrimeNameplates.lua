@@ -172,6 +172,8 @@ local _dispStr =
   [Unit.CodeEnumDisposition.Unknown] = "Hidden",
 }
 
+local E_VULNERABILITY = Unit.CodeEnumCCState.Vulnerability
+
 local F_PATH = 0
 local F_QUEST = 1
 local F_CHALLENGE = 2
@@ -459,10 +461,12 @@ function NPrimeNameplates:InitNameplate(unitNameplateOwner, tNameplate, p_type, 
     tNameplate.iconArmor = tNameplate.form:FindChild("IconArmor")
 
     tNameplate.health = tNameplate.form:FindChild("BarHealth")
+    tNameplate.wndHealthText = tNameplate.form:FindChild("TextHealth")
     tNameplate.shield = tNameplate.form:FindChild("BarShield")
     tNameplate.absorb = tNameplate.form:FindChild("BarAbsorb")
     tNameplate.casting = tNameplate.form:FindChild("BarCasting")
     tNameplate.cc = tNameplate.form:FindChild("BarCC")
+    tNameplate.wndCleanseFrame = tNameplate.form:FindChild("CleanseFrame")
 
     if (not _matrix["ConfigBarIncrements"]) then
       tNameplate.health:SetFullSprite("Bar_02")
@@ -487,7 +491,8 @@ function NPrimeNameplates:InitNameplate(unitNameplateOwner, tNameplate, p_type, 
     tNameplate.textUnitName:SetFont(l_font[l_fontSize].font)
     tNameplate.textUnitLevel:SetFont(l_font[l_fontSize].font)
     tNameplate.textUnitGuild:SetFont(l_font[l_fontGuild].font)
-    tNameplate.textUnitGuild:SetAnchorOffsets(0, 0, 0, l_font[l_fontGuild].height * 0.9)
+    tNameplate.wndHealthText:SetFont(l_font[l_fontGuild].font)
+    -- tNameplate.textUnitGuild:SetAnchorOffsets(0, 0, 0, l_font[l_fontGuild].height * 0.9)
 
     tNameplate.containerCastBar:SetFont(l_font[l_fontSize].font)
     tNameplate.containerCC:SetFont(l_font[l_fontSize].font)
@@ -524,7 +529,7 @@ function NPrimeNameplates:InitNameplate(unitNameplateOwner, tNameplate, p_type, 
   tNameplate.textUnitGuild:Show(false)
   tNameplate.iconArmor:Show(false)
 
-  tNameplate.containerMain:SetText("")
+  -- tNameplate.containerMain:SetText("")
   local l_heightMod = (tNameplate.hasShield and 1.3 or 1)
 
   local l_shieldHeightMod = _matrix["ConfigLargeShield"] and 0.5 or 0.35
@@ -534,12 +539,17 @@ function NPrimeNameplates:InitNameplate(unitNameplateOwner, tNameplate, p_type, 
   self:UpdateMainContainerHeight(tNameplate)
 
   tNameplate.shield:Show(tNameplate.hasShield)
-  tNameplate.health:SetAnchorOffsets(-l_zoomSliderW, 0, l_zoomSliderW, l_zoomSliderH * l_heightMod)
+  --tNameplate.health:SetAnchorOffsets(-l_zoomSliderW, 3, l_zoomSliderW, l_zoomSliderH * l_heightMod + 3)
+  -- tNameplate.health:SetAnchorOffsets(0, 0, 0, --[[l_shieldHeight + l_healthTextHeight]] tNameplate.hasShield and 0 or -3)
+  local mc_left, mc_top, mc_right, mc_bottom = tNameplate.containerMain:GetAnchorOffsets()
+  tNameplate.containerMain:SetAnchorOffsets(mc_left, mc_top, mc_right, tNameplate.hasShield and mc_top + 14 or mc_top + 11)
 
-  tNameplate.shield:SetAnchorOffsets(0, _min(-l_shieldHeight, -3), 0, 0)
+  -- tNameplate.shield:SetAnchorOffsets(0, _min(-l_shieldHeight, -3), 0, 0)
 
   if (tNameplate.hasHealth) then
     self:UpdateMainContainer(tNameplate)
+  else
+    tNameplate.wndHealthText:Show(false)
   end
 
   tNameplate.colorFlags = self:GetColorFlags(tNameplate)
@@ -755,75 +765,75 @@ end
 
 
 
-function NPrimeNameplates:UpdateNameplate(p_nameplate, p_cyclicUpdate)
-  local l_showCastingBar = GetFlag(p_nameplate.matrixFlags, F_CASTING_BAR)
-  local l_showCCBar = GetFlag(p_nameplate.matrixFlags, F_CC_BAR)
-  p_nameplate.onScreen = p_nameplate.form:IsOnScreen()
-  p_nameplate.occluded = p_nameplate.form:IsOccluded()
+function NPrimeNameplates:UpdateNameplate(tNameplate, bCyclicUpdate)
+  local bShowCastingBar = GetFlag(tNameplate.matrixFlags, F_CASTING_BAR)
+  local bShowCcBar = GetFlag(tNameplate.matrixFlags, F_CC_BAR)
+  tNameplate.onScreen = tNameplate.form:IsOnScreen()
+  tNameplate.occluded = tNameplate.form:IsOccluded()
 
-  if (p_cyclicUpdate) then
-    local l_distanceToUnit = self:DistanceToUnit(p_nameplate.unit)
-    p_nameplate.outOfRange = l_distanceToUnit > _matrix["SliderDrawDistance"]
+  if (bCyclicUpdate) then
+    local nDistanceToUnit = self:DistanceToUnit(tNameplate.unit)
+    tNameplate.outOfRange = nDistanceToUnit > _matrix["SliderDrawDistance"]
   end
 
-  if (p_nameplate.onScreen) then
-    local l_disposition = self:GetDispositionTo(p_nameplate.unit, _player)
-    if (p_nameplate.eDisposition ~= l_disposition) then
-      p_nameplate.eDisposition = l_disposition
-      p_nameplate.type = _dispStr[l_disposition]
+  if (tNameplate.onScreen) then
+    local eDispositionToPlayer = self:GetDispositionTo(tNameplate.unit, _player)
+    if (tNameplate.eDisposition ~= eDispositionToPlayer) then
+      tNameplate.eDisposition = eDispositionToPlayer
+      tNameplate.type = _dispStr[eDispositionToPlayer]
     end
   end
 
-  local l_visible = self:GetNameplateVisibility(p_nameplate)
-  if (p_nameplate.form:IsVisible() ~= l_visible) then
-    p_nameplate.form:Show(l_visible, true)
+  local bIsNameplateVisible = self:GetNameplateVisibility(tNameplate)
+  if (tNameplate.form:IsVisible() ~= bIsNameplateVisible) then
+    tNameplate.form:Show(bIsNameplateVisible, true)
   end
 
-  if (l_showCCBar and p_nameplate.ccActiveID ~= -1) then
-    self:UpdateCC(p_nameplate)
+  if (bShowCcBar and tNameplate.ccActiveID ~= -1) then
+    self:UpdateCC(tNameplate)
   end
 
   if (_flags.opacity == 2) then
-    self:UpdateOpacity(p_nameplate)
+    self:UpdateOpacity(tNameplate)
   end
 
-  if (_flags.contacts == 2 and p_nameplate.isPlayer) then
-    self:UpdateIconsPC(p_nameplate)
+  if (_flags.contacts == 2 and tNameplate.isPlayer) then
+    self:UpdateIconsPC(tNameplate)
   end
 
-  if (not l_visible) then return end
+  if (not bIsNameplateVisible) then return end
 
   ---------------------------------------------------------------------------
 
-  self:UpdateAnchoring(p_nameplate)
+  self:UpdateAnchoring(tNameplate)
 
-  if (l_showCastingBar) then
-    self:UpdateCasting(p_nameplate)
+  if (bShowCastingBar) then
+    self:UpdateCasting(tNameplate)
   end
 
-  self:UpdateArmor(p_nameplate)
+  self:UpdateArmor(tNameplate)
 
-  if (p_nameplate.hasHealth
-      or (p_nameplate.isPlayer and self:HasHealth(p_nameplate.unit))) then
-    self:UpdateMainContainer(p_nameplate)
-    p_nameplate.hasHealth = true
+  if (tNameplate.hasHealth
+      or (tNameplate.isPlayer and self:HasHealth(tNameplate.unit))) then
+    self:UpdateMainContainer(tNameplate)
+    tNameplate.hasHealth = true
   end
 
-  if (p_cyclicUpdate) then
-    local l_colorFlags = self:GetColorFlags(p_nameplate)
-    if (p_nameplate.colorFlags ~= l_colorFlags) then
-      p_nameplate.colorFlags = l_colorFlags
-      self:UpdateNameplateColors(p_nameplate)
+  if (bCyclicUpdate) then
+    local l_colorFlags = self:GetColorFlags(tNameplate)
+    if (tNameplate.colorFlags ~= l_colorFlags) then
+      tNameplate.colorFlags = l_colorFlags
+      self:UpdateNameplateColors(tNameplate)
     end
 
-    if (not p_nameplate.isPlayer) then
-      self:UpdateIconsNPC(p_nameplate)
+    if (not tNameplate.isPlayer) then
+      self:UpdateIconsNPC(tNameplate)
     end
   end
 
-  if (p_nameplate.rearrange) then
-    p_nameplate.form:ArrangeChildrenVert(1)
-    p_nameplate.rearrange = false
+  if (tNameplate.rearrange) then
+    tNameplate.form:ArrangeChildrenVert(1)
+    tNameplate.rearrange = false
   end
 end
 
@@ -890,7 +900,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
   end
 
   if (l_visible) then
-    if (l_health ~= prevHealth) then
+    if (l_health ~= p_nameplate.prevHealth) then
       local l_temp = l_isFriendly and "SliderLowHealthFriendly" or "SliderLowHealth"
       if (_matrix[l_temp] ~= 0) then
         local l_cutoff = (_matrix[l_temp] / 100)
@@ -900,11 +910,19 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
       self:SetProgressBar(p_nameplate.health, l_health, l_healthMax)
     end
 
-    if (l_absorb ~= prevAbsorb) then
-      self:SetProgressBar(p_nameplate.absorb, l_absorb, l_healthMax)
+    if (l_absorb > 0) then
+      if (not p_nameplate.absorb:IsVisible()) then
+        p_nameplate.absorb:Show(true)
+      end
+
+      if (l_absorb ~= p_nameplate.prevAbsorb) then
+        self:SetProgressBar(p_nameplate.absorb, l_absorb, l_healthMax)
+      end
+    else
+      p_nameplate.absorb:Show(false)
     end
 
-    if (p_nameplate.hasShield and l_shield ~= prevShield) then
+    if (p_nameplate.hasShield and l_shield ~= p_nameplate.prevShield) then
       self:SetProgressBar(p_nameplate.shield, l_shield, l_shieldMax)
     end
 
@@ -922,7 +940,7 @@ function NPrimeNameplates:UpdateMainContainer(p_nameplate)
         l_shieldText = " (" .. self:GetNumber(l_shield, l_shieldMax) .. ")"
       end
 
-      p_nameplate.containerMain:SetText(l_healthText .. l_shieldText)
+      p_nameplate.wndHealthText:SetText(l_healthText .. l_shieldText)
     end
   end
 
@@ -965,29 +983,34 @@ function NPrimeNameplates:UpdateMainContainerHeight(tNameplate)
   tNameplate.rearrange = true
 end
 
-function NPrimeNameplates:UpdateNameplateColors(p_nameplate)
-  local bPvpFlagged = _player:IsPvpFlagged() and GetFlag(p_nameplate.colorFlags, F_PVP)
-  local l_aggroLost = GetFlag(p_nameplate.colorFlags, F_AGGRO)
-  local l_cleanse = GetFlag(p_nameplate.colorFlags, F_CLEANSE)
-  local l_lowHP = GetFlag(p_nameplate.colorFlags, F_LOW_HP)
+function NPrimeNameplates:UpdateNameplateColors(tNameplate)
+  local bPvpFlagged = _player:IsPvpFlagged() and GetFlag(tNameplate.colorFlags, F_PVP)
+  local l_aggroLost = GetFlag(tNameplate.colorFlags, F_AGGRO)
+  local bIsCleansable = GetFlag(tNameplate.colorFlags, F_CLEANSE)
+  local nLowHp = GetFlag(tNameplate.colorFlags, F_LOW_HP)
 
 
-  local l_textColor = _typeColor[p_nameplate.type]
-  local l_barColor = _dispColor[p_nameplate.eDisposition]
+  local l_textColor = _typeColor[tNameplate.type]
+  local l_barColor = _dispColor[tNameplate.eDisposition]
 
-  local bHostile = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Hostile
-  local l_isFriendly = p_nameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
+  local bHostile = tNameplate.eDisposition == Unit.CodeEnumDisposition.Hostile
+  local bIsFriendly = tNameplate.eDisposition == Unit.CodeEnumDisposition.Friendly
 
-  p_nameplate.color = l_textColor
+  tNameplate.color = l_textColor
 
-  if (p_nameplate.isPlayer or p_nameplate.bPet) then
+  if (tNameplate.isPlayer or tNameplate.bPet) then
     if (not bPvpFlagged and bHostile) then
       l_textColor = _dispColor[Unit.CodeEnumDisposition.Neutral]
       l_barColor = _dispColor[Unit.CodeEnumDisposition.Neutral]
-      p_nameplate.color = l_textColor
+      tNameplate.color = l_textColor
     end
-    if (l_cleanse and l_isFriendly) then
-      l_barColor = _typeColor["Cleanse"]
+
+    if (bIsCleansable and bIsFriendly and not tNameplate.wndCleanseFrame:IsVisible()) then
+      tNameplate.wndCleanseFrame:Show(true)
+      tNameplate.wndCleanseFrame:SetBGColor(_typeColor["Cleanse"])
+    elseif (tNameplate.wndCleanseFrame:IsVisible()) then
+      -- p_nameplate.containerMain:SetSprite("")
+      tNameplate.wndCleanseFrame:Show(false)
     end
   else
     if (l_aggroLost and bHostile) then
@@ -995,16 +1018,16 @@ function NPrimeNameplates:UpdateNameplateColors(p_nameplate)
     end
   end
 
-  if (l_lowHP) then
-    l_barColor = _typeColor["Special"]
+  if (nLowHp) then
+    l_barColor = bIsFriendly and _color("FF0000FF") or _typeColor["Special"]
   end
 
-  p_nameplate.textUnitName:SetTextColor(l_textColor)
-  p_nameplate.textUnitGuild:SetTextColor(l_textColor)
-  p_nameplate.health:SetBarColor(l_barColor)
+  tNameplate.textUnitName:SetTextColor(l_textColor)
+  tNameplate.textUnitGuild:SetTextColor(l_textColor)
+  tNameplate.health:SetBarColor(l_barColor)
 
-  if (p_nameplate.targetNP and p_nameplate.targetMark ~= nil) then
-    p_nameplate.targetMark:SetBGColor(p_nameplate.color)
+  if (tNameplate.targetNP and tNameplate.targetMark ~= nil) then
+    tNameplate.targetMark:SetBGColor(tNameplate.color)
   end
 end
 
@@ -1109,7 +1132,7 @@ end
 function NPrimeNameplates:OnTargetUnitChanged(unitTarget)
   if (not _player) then return end
 
-  if (unitTarget ~= nil and self.nameplates[unitTarget:GetId()]) then
+  if (unitTarget and self.nameplates[unitTarget:GetId()]) then
     self.nameplates[unitTarget:GetId()].form:Show(false, true)
   end
 
@@ -1151,6 +1174,26 @@ function NPrimeNameplates:OnTargetUnitChanged(unitTarget)
 
   _flags.opacity = 1
   _targetNP.form:Show(unitTarget ~= nil, true)
+
+
+  --[[
+  if (_targetNP and not _targetNP.nCleansePixieId) then
+    local nPixieId = _targetNP.form:FindChild("CleanseFrame"):AddPixie({
+      bLine = false,
+      strSprite = "NPrimeNameplates_Sprites:Cleanse",
+      cr = _typeColor["Cleanse"],
+      loc = {
+        fPoints = { 0, 0, 1, 1 },
+        --nOffsets = { -56, 0, 56, 25 },
+        flagsText = {
+          DT_CENTER = true,
+          DT_VCENTER = true
+        }
+      }
+    })
+    _targetNP.nCleansePixieId = nPixieId
+  end
+  ]]
 end
 
 function NPrimeNameplates:UpdateLegacyTargetPixie()
@@ -1455,6 +1498,7 @@ function NPrimeNameplates:UpdateTextNameGuild(p_nameplate)
   p_nameplate.textUnitName:SetText(l_name)
   p_nameplate.textUnitName:SetAnchorOffsets(0, 0, l_width, 0)
 
+
   local l_hasGuild = l_guild ~= nil and (_strLen(l_guild) > 0)
   if (p_nameplate.textUnitGuild:IsVisible() ~= l_hasGuild) then
     p_nameplate.textUnitGuild:Show(l_hasGuild)
@@ -1488,7 +1532,12 @@ function NPrimeNameplates:InitClassIcon(p_nameplate)
 end
 
 function NPrimeNameplates:OnCCStateApplied(p_ccID, unitNameplateOwner)
-  if (_ccWhiteList[p_ccID] == nil) then return end
+
+  Print("asdasd" .. tostring(p_ccID))
+
+  if (_ccWhiteList[p_ccID] == nil) then
+    return
+  end
 
   local l_nameplate = self.nameplates[unitNameplateOwner:GetId()]
 
@@ -1507,13 +1556,13 @@ end
 
 function NPrimeNameplates:RegisterCC(p_nameplate, p_ccID)
   local l_duration = p_nameplate.unit:GetCCStateTimeRemaining(p_ccID)
-  if (p_ccID == 9 or l_duration > p_nameplate.ccDuration) then
-    p_nameplate.ccDurationMax = _max(l_duration, 0.1)
-    p_nameplate.ccActiveID = p_ccID
-    p_nameplate.containerCC:SetText(_ccWhiteList[p_ccID])
-    p_nameplate.containerCC:Show(true)
-    p_nameplate.rearrange = true
-  end
+  -- if (p_ccID == 9 or l_duration > p_nameplate.ccDuration) then
+  p_nameplate.ccDurationMax = _max(l_duration, 0.1)
+  p_nameplate.ccActiveID = p_ccID
+  p_nameplate.containerCC:SetText(_ccWhiteList[p_ccID])
+  p_nameplate.containerCC:Show(true)
+  p_nameplate.rearrange = true
+  -- end
 end
 
 function NPrimeNameplates:UpdateCC(p_nameplate)
@@ -1535,15 +1584,20 @@ function NPrimeNameplates:UpdateCC(p_nameplate)
   end
 end
 
-function NPrimeNameplates:UpdateCasting(p_nameplate)
-  local l_showCastBar = p_nameplate.unit:ShouldShowCastBar()
-  if (p_nameplate.containerCastBar:IsVisible() ~= l_showCastBar) then
-    p_nameplate.containerCastBar:Show(l_showCastBar)
-    p_nameplate.rearrange = true
+function NPrimeNameplates:UpdateCasting(tNameplate)
+  local bShowCastBar = tNameplate.unit:ShouldShowCastBar()
+  if (tNameplate.containerCastBar:IsVisible() ~= bShowCastBar) then
+
+    tNameplate.containerCastBar:Show(bShowCastBar)
+
+    tNameplate.rearrange = true
   end
-  if (l_showCastBar) then
-    p_nameplate.casting:SetProgress(p_nameplate.unit:GetCastTotalPercent())
-    p_nameplate.containerCastBar:SetText(p_nameplate.unit:GetCastName())
+  if (bShowCastBar) then
+    local bIsCcVulnerable = tNameplate.unit:GetInterruptArmorMax() >= 0
+    tNameplate.form:ToFront()
+    tNameplate.containerCastBar:FindChild("BarCasting"):SetBarColor(bIsCcVulnerable and "xkcdDustyOrange" or _color("ff990000"))
+    tNameplate.casting:SetProgress(tNameplate.unit:GetCastTotalPercent())
+    tNameplate.containerCastBar:SetText(tNameplate.unit:GetCastName())
   end
 end
 
@@ -2015,17 +2069,19 @@ function NPrimeNameplates:UpdateMainContainerHeightWithHealthText(p_nameplate)
   local l_healthTextFont = _matrix["ConfigAlternativeFont"] and _fontSecondary or _fontPrimary
   local l_healthTextHeight = _matrix["ConfigHealthText"] and (l_healthTextFont[l_fontSize].height * 0.75) or 0
 
-  p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shieldHeight + l_healthTextHeight)
+  -- p_nameplate.health:SetAnchorOffsets(0, 0, 0, --[[l_shieldHeight + l_healthTextHeight]] p_nameplate.hasShield and 0 or -4)
+  p_nameplate.wndHealthText:Show(true)
 end
 
 function NPrimeNameplates:UpdateMainContainerHeightWithoutHealthText(p_nameplate)
   -- Reset text
-  p_nameplate.containerMain:SetText("")
+  -- p_nameplate.containerMain:SetText("")
 
   -- Set container height without text
   local l_zoomSliderH = _matrix["SliderBarScale"] / 10
   local l_shieldHeight = p_nameplate.hasShield and l_zoomSliderH * 1.3 or l_zoomSliderH
-  p_nameplate.containerMain:SetAnchorOffsets(0, 0, 0, l_shieldHeight)
+  -- p_nameplate.containerMain:SetAnchorOffsets(144, -5, -144, --[[l_shieldHeight]] 16)
+  p_nameplate.wndHealthText:Show(false)
 end
 
 -------------------------------------------------------------------------------
