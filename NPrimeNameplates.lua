@@ -467,6 +467,7 @@ function NPrimeNameplates:InitNameplate(unitNameplateOwner, tNameplate, p_type, 
     tNameplate.casting = tNameplate.form:FindChild("BarCasting")
     tNameplate.cc = tNameplate.form:FindChild("BarCC")
     tNameplate.wndCleanseFrame = tNameplate.form:FindChild("CleanseFrame")
+    tNameplate.wndCleanseFrame:Show(false)
 
     if (not _matrix["ConfigBarIncrements"]) then
       tNameplate.health:SetFullSprite("Bar_02")
@@ -1015,6 +1016,10 @@ function NPrimeNameplates:UpdateNameplateColors(tNameplate)
   else
     if (l_aggroLost and bHostile) then
       l_textColor = _typeColor["Special"]
+    end
+    if (tNameplate.wndCleanseFrame:IsVisible()) then
+      -- p_nameplate.containerMain:SetSprite("")
+      tNameplate.wndCleanseFrame:Show(false)
     end
   end
 

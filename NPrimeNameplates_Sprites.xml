@@ -93,11 +93,7 @@
     <Sprite Name="IconArmor_02" Cycle="1">
         <Frame Texture="NPrimeNameplates\Textures.tga" x0="192" x1="192" x2="192" x3="192" x4="256" x5="256" y0="192" y1="192" y2="192" y3="192" y4="256" y5="256" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="Frame" Cycle="1">
-        <Frame Texture="NPrimeNameplates\frame.tga" x0="1" x1="2" x2="18" x3="18" x4="18" x5="19" y0="1" y1="2" y2="8" y3="8" y4="8" y5="9" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    <Sprite Name="SquaredFrame" Cycle="1">
+        <Frame Texture="NPrimeNameplates\frame.tga" x0="1" x1="2" x2="18" x3="18" x4="18" x5="19" y0="1" y1="2" y2="8" y3="8" y4="8" y5="9" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Composite Name="NewComposite" Cycle="0">
-        <Layer Name="CleanseNoHp"/>
-        <Layer Name="FrameGlow"/>
-    </Composite>
 </Sprites>
