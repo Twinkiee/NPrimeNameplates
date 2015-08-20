@@ -2091,6 +2091,13 @@ end
 
 -------------------------------------------------------------------------------
 
+---------------------------------------------------------------------------------------------------
+-- Configuration Functions
+---------------------------------------------------------------------------------------------------
+
+function NPrimeNameplates:OnButtonSignalShowInfoPanel( wndHandler, wndControl, eMouseButton )
+end
+
 local NPrimeNameplatesInst = NPrimeNameplates:new()
 NPrimeNameplatesInst:Init()
 
